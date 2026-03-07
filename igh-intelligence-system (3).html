@@ -1,0 +1,2060 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IGH Intelligence System — Centre de Commandement Numérique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --navy: #0a0f1e;
+  --navy2: #0d1529;
+  --navy3: #111c35;
+  --navy4: #16203d;
+  --gold: #c9a227;
+  --gold2: #e8b93a;
+  --gold3: #f5d060;
+  --gold-dim: rgba(201,162,39,0.15);
+  --red: #c0392b;
+  --red2: #e74c3c;
+  --red-dim: rgba(192,57,43,0.15);
+  --cyan: #00d4ff;
+  --cyan-dim: rgba(0,212,255,0.1);
+  --glass: rgba(13,21,41,0.75);
+  --glass2: rgba(22,32,61,0.6);
+  --border: rgba(201,162,39,0.2);
+  --border2: rgba(255,255,255,0.07);
+  --text: #c8d8f0;
+  --text2: #7a91b8;
+  --text3: #4a608a;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Crimson Pro', Georgia, serif;
+  background: var(--navy);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* BACKGROUND GRID */
+body::before {
+  content:'';
+  position:fixed; inset:0; z-index:0;
+  background-image:
+    linear-gradient(rgba(201,162,39,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201,162,39,0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events:none;
+}
+
+body::after {
+  content:'';
+  position:fixed; inset:0; z-index:0;
+  background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201,162,39,0.08) 0%, transparent 60%);
+  pointer-events:none;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background: var(--navy2); }
+::-webkit-scrollbar-thumb { background: var(--gold); border-radius:3px; }
+
+/* TICKER */
+.ticker-wrap {
+  position: relative; z-index:50;
+  background: linear-gradient(90deg, var(--red) 0%, #8b0000 100%);
+  padding: 6px 0;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.ticker-label {
+  position: absolute; left:0; top:0; bottom:0; z-index:2;
+  background: var(--gold); color: var(--navy);
+  font-family: 'Cinzel', serif; font-size: 10px; font-weight:700;
+  letter-spacing: 2px;
+  display: flex; align-items:center; padding: 0 16px;
+  white-space: nowrap;
+}
+.ticker-content {
+  display: flex; gap: 60px;
+  animation: ticker 40s linear infinite;
+  padding-left: 160px;
+  white-space: nowrap;
+}
+.ticker-content span {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: rgba(255,255,255,0.9); letter-spacing: 0.5px;
+}
+.ticker-content span::before {
+  content:'⬤ '; color: var(--gold3); margin-right:6px;
+}
+@keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+/* HEADER */
+header {
+  position: sticky; top:0; z-index:100;
+  background: rgba(10,15,30,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 4px 40px rgba(0,0,0,0.5);
+}
+.header-inner {
+  max-width: 1600px; margin: 0 auto;
+  padding: 0 24px;
+  display: flex; align-items:center; justify-content:space-between;
+  height: 64px;
+}
+.logo-zone {
+  display: flex; align-items:center; gap:16px;
+}
+.logo-badge {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, var(--gold2), var(--gold) 50%, #8b6800);
+  border: 2px solid var(--gold);
+  display: flex; align-items:center; justify-content:center;
+  font-family:'Cinzel',serif; font-weight:900; font-size:12px; color:var(--navy);
+  box-shadow: 0 0 20px rgba(201,162,39,0.4), inset 0 1px 2px rgba(255,255,255,0.3);
+  position:relative;
+}
+.logo-badge-DISABLED::after {
+  content:'';
+  position:absolute; inset:-4px;
+  border-radius:50%;
+  border: 1px solid rgba(201,162,39,0.3);
+  animation: logoRing 3s linear infinite;
+}
+@keyframes logoRing {
+  0%{transform:rotate(0deg) scale(1); opacity:0.5;}
+  50%{opacity:1;}
+  100%{transform:rotate(360deg) scale(1); opacity:0.5;}
+}
+.logo-text h1 {
+  font-family:'Cinzel',serif; font-size:14px; font-weight:700;
+  color: var(--gold2); letter-spacing:3px; text-transform:uppercase;
+  text-shadow: 0 0 20px rgba(201,162,39,0.3);
+}
+.logo-text p {
+  font-size:9px; color:var(--text2); letter-spacing:4px; text-transform:uppercase;
+  font-family:'JetBrains Mono',monospace;
+}
+.header-center {
+  display:flex; align-items:center; gap:24px;
+}
+.status-pod {
+  display:flex; align-items:center; gap:10px;
+  background: var(--glass2); border:1px solid var(--border2);
+  border-radius:40px; padding:6px 16px;
+}
+.pulse-dot {
+  width:8px; height:8px; border-radius:50%; background:#00e676;
+  box-shadow:0 0 8px #00e676;
+  animation: pulseGreen 1.5s ease-in-out infinite;
+}
+@keyframes pulseGreen {0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(1.3)}}
+.status-pod span {
+  font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--gold);
+}
+.clock-display {
+  font-family:'JetBrains Mono',monospace; font-size:18px; font-weight:500;
+  color:var(--gold2); letter-spacing:2px;
+  text-shadow:0 0 15px rgba(201,162,39,0.5);
+}
+.clock-date { font-size:9px; color:var(--text2); letter-spacing:2px; text-align:right; }
+.header-right {
+  display:flex; align-items:center; gap:8px;
+}
+.hbtn {
+  width:36px; height:36px; border-radius:8px;
+  background:var(--glass2); border:1px solid var(--border2);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all 0.2s; color:var(--text2); font-size:13px;
+  position:relative;
+}
+.hbtn:hover { background:var(--gold-dim); border-color:var(--gold); color:var(--gold); }
+.hbtn .badge {
+  position:absolute; top:4px; right:4px; width:7px; height:7px;
+  background:var(--red2); border-radius:50%; border:1px solid var(--navy);
+}
+.alert-critical { animation:blinkRed 1s ease-in-out infinite; }
+@keyframes blinkRed {0%,100%{background:var(--red2)}50%{background:#ff6b6b}}
+.admin-btn {
+  display:flex; align-items:center; gap:8px;
+  background:linear-gradient(135deg, var(--gold), var(--gold2));
+  color:var(--navy); border:none;
+  padding:8px 16px; border-radius:8px;
+  font-family:'Cinzel',serif; font-size:11px; font-weight:700;
+  cursor:pointer; letter-spacing:1px;
+  box-shadow:0 4px 15px rgba(201,162,39,0.3);
+  transition:all 0.2s;
+}
+.admin-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(201,162,39,0.5); }
+
+/* NAV */
+nav {
+  position:sticky; top:64px; z-index:90;
+  background:rgba(10,15,30,0.9);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border2);
+}
+.nav-inner {
+  max-width:1600px; margin:0 auto; padding:0 24px;
+  display:flex; gap:4px; overflow-x:auto;
+}
+.nav-inner::-webkit-scrollbar { height:0; }
+.ntab {
+  display:flex; align-items:center; gap:8px;
+  padding:14px 18px;
+  background:none; border:none;
+  font-family:'Cinzel',serif; font-size:11px; font-weight:600;
+  color:var(--text2); letter-spacing:1.5px; text-transform:uppercase;
+  cursor:pointer; white-space:nowrap;
+  position:relative; transition:all 0.25s;
+}
+.ntab::after {
+  content:''; position:absolute; bottom:0; left:50%; right:50%;
+  height:2px; background:var(--gold);
+  transition:all 0.25s;
+}
+.ntab:hover { color:var(--text); }
+.ntab:hover::after { left:10%; right:10%; }
+.ntab.active { color:var(--gold2); }
+.ntab.active::after { left:0; right:0; box-shadow:0 0 10px var(--gold); }
+.ntab i { font-size:11px; }
+.ntab .threat-badge {
+  width:6px; height:6px; border-radius:50%; background:var(--red2);
+  animation:blinkRed 1s infinite;
+}
+
+/* LAYOUT */
+.page-wrap {
+  max-width:1600px; margin:0 auto; padding:24px;
+  position:relative; z-index:1;
+}
+.tab-pane { display:none; animation:fadeUp 0.4s ease; }
+.tab-pane.active { display:block; }
+@keyframes fadeUp {
+  from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)}
+}
+
+/* GLASS CARD */
+.gc {
+  background:var(--glass);
+  backdrop-filter:blur(12px);
+  border:1px solid var(--border2);
+  border-radius:12px;
+}
+.gc-gold { border-color:var(--border); }
+.gc-red { border-color:rgba(192,57,43,0.3); }
+
+/* SECTION TITLE */
+.sec-title {
+  font-family:'Cinzel',serif; font-size:22px; font-weight:700;
+  color:var(--gold2); letter-spacing:2px; margin-bottom:6px;
+  text-shadow:0 0 20px rgba(201,162,39,0.2);
+}
+.sec-sub {
+  font-size:13px; color:var(--text2); letter-spacing:0.5px;
+  font-style:italic;
+}
+
+/* ALERT BANNER */
+.alert-banner {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 20px; border-radius:10px;
+  border-left:4px solid var(--red2);
+  background:rgba(192,57,43,0.12);
+  backdrop-filter:blur(8px);
+  border-top:1px solid rgba(192,57,43,0.2);
+  border-right:1px solid rgba(192,57,43,0.2);
+  border-bottom:1px solid rgba(192,57,43,0.2);
+}
+.alert-tag {
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--red2); color:#fff;
+  font-family:'Cinzel',serif; font-size:9px; font-weight:700;
+  letter-spacing:2px; padding:3px 10px; border-radius:3px;
+  text-transform:uppercase;
+}
+.alert-tag i { font-size:9px; animation:blinkRed 0.8s infinite; }
+
+/* MAP ZONE */
+.map-container {
+  position:relative;
+  background: linear-gradient(135deg, #0a1628 0%, #0d1f3e 50%, #091424 100%);
+  border-radius:12px; overflow:hidden;
+  border:1px solid var(--border2);
+  height:420px;
+}
+.map-container canvas { position:absolute; inset:0; width:100%!important; height:100%!important; }
+.map-overlay-ui {
+  position:absolute; inset:0; pointer-events:none;
+}
+.map-corner {
+  position:absolute; font-family:'JetBrains Mono',monospace;
+  font-size:9px; color:rgba(201,162,39,0.5); letter-spacing:1px;
+}
+.map-corner.tl { top:12px; left:12px; }
+.map-corner.tr { top:12px; right:12px; text-align:right; }
+.map-corner.bl { bottom:12px; left:12px; }
+.map-corner.br { bottom:12px; right:12px; text-align:right; }
+.map-layers {
+  position:absolute; top:12px; right:12px; pointer-events:all;
+  display:flex; flex-direction:column; gap:6px;
+}
+.layer-btn {
+  display:flex; align-items:center; gap:6px;
+  background:rgba(10,15,30,0.8); border:1px solid var(--border2);
+  border-radius:6px; padding:5px 10px;
+  font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--text2);
+  cursor:pointer; transition:all 0.2s; letter-spacing:1px;
+}
+.layer-btn.active { border-color:var(--gold); color:var(--gold); background:var(--gold-dim); }
+.layer-btn:hover { border-color:var(--gold); color:var(--gold); }
+.hotspot {
+  position:absolute; transform:translate(-50%,-50%);
+  cursor:pointer; pointer-events:all;
+}
+.hotspot-ring {
+  width:24px; height:24px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; position:relative;
+}
+.hotspot-ring::before {
+  content:''; position:absolute; inset:0; border-radius:50%;
+  border:2px solid currentColor; opacity:0.5;
+  animation:hotspotRing 2s ease-out infinite;
+}
+.hotspot-ring::after {
+  content:''; position:absolute; inset:-8px; border-radius:50%;
+  border:1px solid currentColor; opacity:0.2;
+  animation:hotspotRing 2s ease-out infinite 0.5s;
+}
+@keyframes hotspotRing {
+  0%{transform:scale(0.5); opacity:0.8}
+  100%{transform:scale(2); opacity:0}
+}
+.hotspot-core {
+  width:8px; height:8px; border-radius:50%; z-index:1;
+}
+.hs-red .hotspot-ring { color:#e74c3c; }
+.hs-red .hotspot-core { background:#e74c3c; box-shadow:0 0 10px #e74c3c; }
+.hs-amber .hotspot-ring { color:var(--gold); }
+.hs-amber .hotspot-core { background:var(--gold); box-shadow:0 0 10px var(--gold); }
+.hs-blue .hotspot-ring { color:#00d4ff; }
+.hs-blue .hotspot-core { background:#00d4ff; box-shadow:0 0 10px #00d4ff; }
+.hs-tooltip {
+  position:absolute; left:20px; top:-10px;
+  background:rgba(10,15,30,0.95); border:1px solid var(--border);
+  border-radius:6px; padding:6px 10px; white-space:nowrap;
+  font-size:10px; font-family:'JetBrains Mono',monospace;
+  color:var(--gold); letter-spacing:0.5px; z-index:10;
+  pointer-events:none; opacity:0; transition:opacity 0.2s;
+  min-width:120px;
+}
+.hs-tooltip .hs-label { color:var(--text); display:block; font-size:9px; margin-top:2px; }
+.hotspot:hover .hs-tooltip { opacity:1; }
+.map-legend {
+  position:absolute; bottom:12px; left:12px;
+  background:rgba(10,15,30,0.85); border:1px solid var(--border2);
+  border-radius:8px; padding:10px 14px; pointer-events:none;
+}
+.legend-item {
+  display:flex; align-items:center; gap:6px;
+  font-size:9px; font-family:'JetBrains Mono',monospace;
+  color:var(--text2); letter-spacing:0.5px; margin-bottom:4px;
+}
+.legend-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+/* KPIs */
+.kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+.kpi-card {
+  padding:20px; border-radius:12px; text-align:center;
+  position:relative; overflow:hidden;
+}
+.kpi-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+}
+.kpi-card.c-gold::before { background:linear-gradient(90deg, transparent, var(--gold), transparent); }
+.kpi-card.c-red::before { background:linear-gradient(90deg, transparent, var(--red2), transparent); }
+.kpi-card.c-cyan::before { background:linear-gradient(90deg, transparent, var(--cyan), transparent); }
+.kpi-card.c-green::before { background:linear-gradient(90deg, transparent, #00e676, transparent); }
+.kpi-val { font-family:'Cinzel',serif; font-size:32px; font-weight:900; line-height:1; }
+.kpi-val.c-gold { color:var(--gold2); text-shadow:0 0 20px rgba(201,162,39,0.4); }
+.kpi-val.c-red { color:var(--red2); text-shadow:0 0 20px rgba(192,57,43,0.4); }
+.kpi-val.c-cyan { color:var(--cyan); text-shadow:0 0 20px rgba(0,212,255,0.4); }
+.kpi-val.c-green { color:#00e676; text-shadow:0 0 20px rgba(0,230,118,0.4); }
+.kpi-label { font-size:10px; color:var(--text2); letter-spacing:2px; text-transform:uppercase; margin-top:6px; font-family:'JetBrains Mono',monospace; }
+.kpi-delta { font-size:10px; margin-top:4px; font-family:'JetBrains Mono',monospace; }
+
+/* PUBLICATIONS LIST */
+.pub-item {
+  display:flex; align-items:flex-start; gap:16px;
+  padding:16px; border-radius:10px;
+  background:rgba(13,21,41,0.5);
+  border:1px solid var(--border2);
+  transition:all 0.2s; cursor:pointer;
+}
+.pub-item:hover { border-color:var(--border); background:var(--gold-dim); transform:translateX(4px); }
+.pub-code {
+  font-family:'JetBrains Mono',monospace; font-size:10px;
+  padding:3px 8px; border-radius:4px; font-weight:500; white-space:nowrap;
+}
+.pub-code.ns { background:rgba(0,212,255,0.15); color:var(--cyan); border:1px solid rgba(0,212,255,0.3); }
+.pub-code.da { background:var(--red-dim); color:#ff8a80; border:1px solid rgba(192,57,43,0.3); }
+.pub-code.rs { background:rgba(156,39,176,0.15); color:#ce93d8; border:1px solid rgba(156,39,176,0.3); }
+.pub-code.fi { background:var(--gold-dim); color:var(--gold2); border:1px solid var(--border); }
+.pub-title {
+  font-family:'Crimson Pro',serif; font-size:16px; font-weight:600;
+  color:var(--text); margin:4px 0; transition:color 0.2s;
+}
+.pub-item:hover .pub-title { color:var(--gold2); }
+.pub-meta { font-size:11px; color:var(--text2); font-family:'JetBrains Mono',monospace; }
+.pub-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.tag {
+  font-size:9px; padding:2px 8px; border-radius:3px;
+  font-family:'JetBrains Mono',monospace; letter-spacing:0.5px;
+  background:rgba(255,255,255,0.05); color:var(--text2);
+  border:1px solid rgba(255,255,255,0.08);
+}
+
+/* THREAT GROUPS */
+.threat-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 14px; border-radius:8px; margin-bottom:8px;
+  background:rgba(13,21,41,0.6); border:1px solid var(--border2);
+}
+.threat-level {
+  font-size:9px; padding:2px 8px; border-radius:3px;
+  font-family:'Cinzel',serif; font-weight:700; letter-spacing:1px;
+}
+.tl-critical { background:var(--red-dim); color:var(--red2); border:1px solid rgba(192,57,43,0.4); }
+.tl-high { background:rgba(255,100,0,0.15); color:#ff7043; border:1px solid rgba(255,100,0,0.3); }
+.tl-medium { background:var(--gold-dim); color:var(--gold2); border:1px solid var(--border); }
+
+/* COUNTRY CARDS */
+.country-card {
+  padding:16px; border-radius:10px; border:1px solid var(--border2);
+  background:rgba(13,21,41,0.5); transition:all 0.25s;
+  position:relative; overflow:hidden;
+}
+.country-card::before {
+  content:''; position:absolute; left:0; top:0; bottom:0; width:3px;
+}
+.country-card:hover { transform:translateY(-3px); border-color:var(--border); }
+.country-card h3 {
+  font-family:'Cinzel',serif; font-size:13px; font-weight:700;
+  color:var(--gold2); letter-spacing:2px; text-transform:uppercase; margin-bottom:10px;
+}
+
+/* TENSION BARS */
+.tension-row { margin-bottom:12px; }
+.tension-label { display:flex; justify-content:space-between; margin-bottom:5px; font-size:12px; }
+.tension-track {
+  height:6px; background:rgba(255,255,255,0.07); border-radius:3px; overflow:hidden;
+}
+.tension-fill { height:100%; border-radius:3px; transition:width 1s ease; }
+
+/* ADMIN MODAL */
+.modal-overlay {
+  position:fixed; inset:0; z-index:1000;
+  background:rgba(5,8,15,0.85); backdrop-filter:blur(10px);
+  display:none; align-items:center; justify-content:center;
+}
+.modal-overlay.open { display:flex; }
+.modal-box {
+  background:linear-gradient(135deg, var(--navy2) 0%, var(--navy3) 100%);
+  border:1px solid var(--border);
+  border-radius:16px; padding:32px;
+  width:620px; max-width:95vw;
+  position:relative; overflow:hidden;
+  box-shadow:0 30px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(201,162,39,0.1);
+}
+.modal-box::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background:linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.modal-title {
+  font-family:'Cinzel',serif; font-size:18px; font-weight:700;
+  color:var(--gold2); letter-spacing:3px; margin-bottom:24px;
+  text-transform:uppercase;
+}
+.form-group { margin-bottom:16px; }
+.form-label {
+  display:block; font-size:10px; font-family:'JetBrains Mono',monospace;
+  letter-spacing:2px; color:var(--text2); text-transform:uppercase; margin-bottom:6px;
+}
+.form-input, .form-select, .form-textarea {
+  width:100%; padding:10px 14px;
+  background:rgba(255,255,255,0.04); border:1px solid var(--border2);
+  border-radius:8px; color:var(--text);
+  font-family:'Crimson Pro',serif; font-size:15px;
+  outline:none; transition:border-color 0.2s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color:var(--gold); background:rgba(201,162,39,0.05);
+}
+.form-select option { background:var(--navy3); }
+.form-textarea { resize:vertical; min-height:80px; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.btn-pub {
+  width:100%; padding:13px; border:none; border-radius:8px; cursor:pointer;
+  background:linear-gradient(135deg, var(--gold), var(--gold2));
+  color:var(--navy); font-family:'Cinzel',serif; font-size:12px; font-weight:700;
+  letter-spacing:2px; text-transform:uppercase;
+  box-shadow:0 4px 20px rgba(201,162,39,0.4); transition:all 0.2s;
+}
+.btn-pub:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(201,162,39,0.5); }
+.btn-close {
+  position:absolute; top:16px; right:16px;
+  width:32px; height:32px; border-radius:6px;
+  background:rgba(255,255,255,0.05); border:1px solid var(--border2);
+  color:var(--text2); font-size:14px; cursor:pointer; transition:all 0.2s;
+  display:flex; align-items:center; justify-content:center;
+}
+.btn-close:hover { background:var(--red-dim); color:var(--red2); border-color:rgba(192,57,43,0.4); }
+
+/* PREDICTIVE RADAR */
+.pred-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.pred-card {
+  padding:16px; border-radius:10px;
+  background:rgba(13,21,41,0.7); border:1px solid var(--border2);
+  text-align:center;
+}
+.pred-country {
+  font-family:'Cinzel',serif; font-size:11px; font-weight:700;
+  color:var(--text2); letter-spacing:2px; margin-bottom:12px;
+}
+.pred-pct {
+  font-family:'Cinzel',serif; font-size:36px; font-weight:900; line-height:1;
+}
+.pred-bar-track {
+  height:4px; background:rgba(255,255,255,0.07); border-radius:2px;
+  margin:10px 0;
+}
+.pred-bar-fill { height:100%; border-radius:2px; }
+.pred-label { font-size:10px; font-family:'JetBrains Mono',monospace; color:var(--text2); }
+
+/* COGNITIVE WARFARE */
+.cog-item {
+  display:flex; gap:14px; padding:14px;
+  border-radius:10px; background:rgba(13,21,41,0.5);
+  border:1px solid var(--border2); margin-bottom:10px;
+}
+.cog-src {
+  width:40px; height:40px; border-radius:8px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:16px;
+}
+.cog-title { font-size:14px; font-weight:600; color:var(--text); margin-bottom:4px; }
+.cog-meta { font-size:11px; color:var(--text2); font-family:'JetBrains Mono',monospace; }
+.intensity-bar {
+  display:flex; align-items:center; gap:8px; margin-top:8px;
+}
+.intensity-label { font-size:9px; font-family:'JetBrains Mono',monospace; color:var(--text2); width:60px; }
+
+/* SANDBOX */
+.scenario-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:20px; }
+.scenario-card {
+  padding:16px; border-radius:10px; cursor:pointer;
+  background:rgba(13,21,41,0.5); border:1px solid var(--border2);
+  transition:all 0.25s; position:relative; overflow:hidden;
+}
+.scenario-card:hover { border-color:var(--gold); background:var(--gold-dim); }
+.scenario-card.selected { border-color:var(--gold2); background:rgba(201,162,39,0.12); }
+.scenario-card.selected::before {
+  content:'✓'; position:absolute; top:8px; right:10px;
+  color:var(--gold); font-size:14px; font-weight:900;
+}
+.sc-icon { font-size:24px; margin-bottom:8px; }
+.sc-title { font-family:'Cinzel',serif; font-size:12px; font-weight:700; color:var(--gold2); letter-spacing:1px; margin-bottom:4px; }
+.sc-desc { font-size:12px; color:var(--text2); }
+.sandbox-result {
+  padding:20px; border-radius:10px;
+  background:rgba(13,21,41,0.7); border:1px solid var(--border);
+  display:none;
+}
+.sandbox-result.show { display:block; animation:fadeUp 0.4s ease; }
+.sr-title { font-family:'Cinzel',serif; font-size:13px; color:var(--gold2); letter-spacing:2px; margin-bottom:12px; }
+.effect-item {
+  display:flex; align-items:flex-start; gap:10px;
+  padding:10px 0; border-bottom:1px solid var(--border2);
+}
+.effect-item:last-child { border-bottom:none; }
+.effect-ico { width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
+
+/* SHADOW BRIEFING */
+.shadow-card {
+  padding:20px; border-radius:10px; margin-bottom:12px;
+  background:rgba(5,8,15,0.8); border:1px solid rgba(201,162,39,0.15);
+  border-left:3px solid var(--gold);
+  position:relative; overflow:hidden;
+}
+.shadow-card::before {
+  content:'CONFIDENTIEL'; position:absolute;
+  top:50%; right:-20px; transform:translateY(-50%) rotate(-90deg);
+  font-family:'Cinzel',serif; font-size:9px; letter-spacing:4px;
+  color:rgba(201,162,39,0.1); font-weight:900;
+}
+.shadow-level {
+  font-size:9px; font-family:'JetBrains Mono',monospace;
+  padding:2px 8px; border-radius:3px; letter-spacing:2px;
+  margin-bottom:8px; display:inline-block;
+}
+.sl-vip { background:rgba(156,39,176,0.2); color:#ce93d8; border:1px solid rgba(156,39,176,0.4); }
+.sl-secret { background:var(--red-dim); color:#ff8a80; border:1px solid rgba(192,57,43,0.4); }
+.sl-alpha { background:var(--gold-dim); color:var(--gold2); border:1px solid var(--border); }
+.shadow-title { font-family:'Crimson Pro',serif; font-size:17px; font-weight:600; color:var(--text); margin-bottom:8px; }
+.shadow-body { font-size:13px; color:var(--text2); line-height:1.7; font-style:italic; }
+.shadow-action {
+  margin-top:12px; padding:8px 12px; border-radius:6px;
+  background:rgba(201,162,39,0.1); border:1px solid var(--border);
+  font-size:11px; font-family:'JetBrains Mono',monospace; color:var(--gold);
+  letter-spacing:0.5px;
+}
+.shadow-action::before { content:'► ACTION : '; font-weight:600; }
+
+/* INFRASTRUCTURE PIPES */
+.infra-item {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 16px; border-radius:8px; margin-bottom:8px;
+  background:rgba(13,21,41,0.5); border:1px solid var(--border2);
+  transition:all 0.2s;
+}
+.infra-item:hover { border-color:var(--border); }
+.infra-status {
+  font-size:9px; padding:3px 10px; border-radius:3px;
+  font-family:'JetBrains Mono',monospace; letter-spacing:1px;
+}
+.is-active { background:rgba(0,230,118,0.15); color:#00e676; border:1px solid rgba(0,230,118,0.3); }
+.is-progress { background:var(--gold-dim); color:var(--gold2); border:1px solid var(--border); }
+.is-planned { background:var(--cyan-dim); color:var(--cyan); border:1px solid rgba(0,212,255,0.3); }
+.is-halt { background:var(--red-dim); color:var(--red2); border:1px solid rgba(192,57,43,0.3); }
+
+/* GRID HELPERS */
+.g2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.g3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.g4 { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+.g13 { display:grid; grid-template-columns:1fr 3fr; gap:20px; }
+.g31 { display:grid; grid-template-columns:3fr 1fr; gap:20px; }
+.g12 { display:grid; grid-template-columns:1fr 2fr; gap:20px; }
+.mb8 { margin-bottom:8px; }
+.mb12 { margin-bottom:12px; }
+.mb16 { margin-bottom:16px; }
+.mb20 { margin-bottom:20px; }
+.mb24 { margin-bottom:24px; }
+.gap8 { gap:8px; }
+.flex { display:flex; }
+.items-center { align-items:center; }
+.justify-between { justify-content:space-between; }
+
+/* DIVIDER */
+.divider {
+  height:1px; background:linear-gradient(90deg, transparent, var(--border), transparent);
+  margin:20px 0;
+}
+
+/* NOTIFICATION TOAST */
+.toast {
+  position:fixed; bottom:24px; right:24px; z-index:999;
+  background:linear-gradient(135deg, var(--navy3), var(--navy4));
+  border:1px solid var(--gold); border-radius:12px;
+  padding:16px 20px; display:flex; align-items:center; gap:12px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.6), 0 0 30px rgba(201,162,39,0.2);
+  transform:translateX(120%); transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  max-width:340px;
+}
+.toast.show { transform:translateX(0); }
+.toast-icon { font-size:20px; }
+.toast-text { font-size:13px; color:var(--text); font-family:'Crimson Pro',serif; }
+.toast-text strong { color:var(--gold2); display:block; font-family:'Cinzel',serif; font-size:11px; letter-spacing:1px; }
+
+/* RUBRIC MENU */
+.rubric-menu-item {
+  padding:10px 14px; border-radius:8px;
+  background:rgba(13,21,41,0.5); border:1px solid var(--border2);
+  cursor:pointer; transition:all 0.2s; margin-bottom:6px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.rubric-menu-item:hover { border-color:var(--border); background:var(--gold-dim); }
+.rubric-menu-item i.fa-chevron-down { transition:transform 0.2s; }
+.rubric-menu-item.open i.fa-chevron-down { transform:rotate(180deg); }
+.rubric-sub {
+  max-height:0; overflow:hidden; transition:max-height 0.3s ease;
+  padding-left:16px;
+}
+.rubric-sub.open { max-height:200px; }
+.rubric-sub-item {
+  padding:6px 8px; font-size:12px; color:var(--text2);
+  cursor:pointer; border-radius:4px; transition:color 0.2s;
+  display:block;
+}
+.rubric-sub-item:hover { color:var(--gold); }
+.rubric-sub-item::before { content:'→ '; color:var(--text3); }
+
+/* SMART BRIEFING */
+.briefing-box {
+  padding:24px; border-radius:12px;
+  background:linear-gradient(135deg, rgba(5,8,15,0.9), rgba(13,21,41,0.9));
+  border:1px solid var(--border); position:relative;
+}
+.briefing-box::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, var(--red2), var(--gold), var(--cyan));
+}
+.briefing-date {
+  font-family:'JetBrains Mono',monospace; font-size:10px;
+  color:var(--text2); letter-spacing:2px; margin-bottom:16px;
+}
+.briefing-point {
+  display:flex; gap:12px; margin-bottom:14px; align-items:flex-start;
+}
+.bp-num {
+  font-family:'Cinzel',serif; font-size:20px; font-weight:900;
+  color:var(--gold); opacity:0.5; line-height:1.2; flex-shrink:0; width:24px;
+}
+.bp-text { font-size:15px; color:var(--text); line-height:1.6; }
+.bp-text strong { color:var(--gold2); }
+
+/* SATELLITE */
+.sat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+.sat-thumb {
+  border-radius:8px; overflow:hidden; aspect-ratio:16/10; position:relative;
+  background:linear-gradient(135deg, #0a1628, #1a2840);
+  border:1px solid var(--border2); cursor:pointer;
+}
+.sat-thumb:hover { border-color:var(--gold); }
+.sat-overlay {
+  position:absolute; inset:0;
+  background:repeating-linear-gradient(
+    0deg, transparent, transparent 4px, rgba(0,212,255,0.03) 4px, rgba(0,212,255,0.03) 5px
+  );
+}
+.sat-grid-lines {
+  position:absolute; inset:0;
+  background-image: linear-gradient(rgba(0,212,255,0.08) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(0,212,255,0.08) 1px, transparent 1px);
+  background-size:20px 20px;
+}
+.sat-label {
+  position:absolute; bottom:8px; left:8px;
+  font-family:'JetBrains Mono',monospace; font-size:9px;
+  color:var(--cyan); letter-spacing:1px;
+  background:rgba(5,8,15,0.8); padding:3px 8px; border-radius:3px;
+}
+.sat-crosshair {
+  position:absolute; width:30px; height:30px;
+  border:1px solid var(--gold); border-radius:50%;
+  top:50%; left:50%; transform:translate(-50%,-50%);
+  animation:satScan 3s linear infinite;
+}
+.sat-crosshair::before, .sat-crosshair::after {
+  content:''; position:absolute; background:var(--gold); opacity:0.6;
+}
+.sat-crosshair::before { width:1px; height:40px; left:50%; top:-5px; }
+.sat-crosshair::after { height:1px; width:40px; top:50%; left:-5px; }
+@keyframes satScan { 0%{opacity:0.6}50%{opacity:1}100%{opacity:0.6} }
+
+/* ANIMATIONS */
+@keyframes scanLine {
+  0%{top:0} 100%{top:100%}
+}
+
+/* RESPONSIVE */
+@media(max-width:1024px) {
+  .kpi-grid { grid-template-columns:repeat(2,1fr); }
+  .g3 { grid-template-columns:1fr 1fr; }
+  .pred-grid { grid-template-columns:repeat(2,1fr); }
+}
+@media(max-width:768px) {
+  .header-inner { padding:0 12px; }
+  .logo-text h1 { font-size:11px; }
+  .clock-display { font-size:14px; }
+  .page-wrap { padding:12px; }
+  .kpi-grid, .g2, .g3, .g4, .g13, .g12, .g31 { grid-template-columns:1fr; }
+  .scenario-grid { grid-template-columns:1fr; }
+  .form-row { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- BREAKING NEWS TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-label">⚡ BREAKING</div>
+  <div class="ticker-content" id="ticker">
+    <span>OPÉRATION HEDGEHOG : Déploiement OTAN imminent au Sahel — Sources confirmées</span>
+    <span>Nomination Joshua Harris à Alger : pivot stratégique américain vers le Maghreb</span>
+    <span>M23 : Progression vers Goma — Implications régionales critiques analysées par IGH</span>
+    <span>Gazoduc Nigeria-Maroc : avancées techniques confirmées lors du sommet de Rabat</span>
+    <span>Wagner PMC : Repositionnement tactique au Mali et Burkina Faso signalé</span>
+    <span>Tensions Maroc-Algérie — Indice IGH : 8.4/10 — Niveau le plus élevé depuis 2021</span>
+    <span>OPÉRATION HEDGEHOG : Déploiement OTAN imminent au Sahel — Sources confirmées</span>
+    <span>Nomination Joshua Harris à Alger : pivot stratégique américain vers le Maghreb</span>
+    <span>M23 : Progression vers Goma — Implications régionales critiques analysées par IGH</span>
+    <span>Gazoduc Nigeria-Maroc : avancées techniques confirmées lors du sommet de Rabat</span>
+    <span>Wagner PMC : Repositionnement tactique au Mali et Burkina Faso signalé</span>
+    <span>Tensions Maroc-Algérie — Indice IGH : 8.4/10 — Niveau le plus élevé depuis 2021</span>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo-zone">
+      <div class="logo-badge" style="background:none;border:none;box-shadow:none;width:52px;height:52px;padding:0;overflow:visible;">
+        <img src="data:image/jpeg;base64,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AAMowAD0fwPG8D2bYHQWNm3JMuEn9wWgAAQM+VNpV2bPKqj3Tcpg5WL79gJv7VlawE1/MrR9wIeqnW+JKYcRhIxqjkGAVl43wBEtFWOARsQRYyDqG8YQPKoamd7ezCkIgNq3FSrxp3bC9GKCgBNBEBTPZJOjQ2vOgB4hAaurHQ/gfCptzXX2c818VmmuGHkuQEGtIcHmyabtSRGsMfVWP/4Va4aP3yeLgCsX7TxNw59WUmok9Ff8MxcfAgAP13V0AAfI3bpiy4T9SiAqAJNQKtGcDtANRL3LwFywEo9cs8kmPYpCY6yIKx9DDJoiWI+agAIyAjrn3KLHB3FbmDH5Z1pxBPHy1Q4owAEFku3liiwWAQJmMpw8JkqJpmCQN+PQAAEszbV4cwd7PEyDQVS+NKc1L6sni6KwAAABDF37AAtvqvvrikLisqgtriMBAAQAAAAADl58CAAuMkvvvqlvCkJjishtbwwAAAAAATjpPfDNjgjhsvistrigvt4PQgAAAAAAAIuEmVdPPvvgAPNDCFKBjEZMwAAAAAAAAAAYWyyCxnoAAFPMIFOWvh4AAAAAAAAAAAAAiCjYixBTjntjRBQO+gQAAAAAAAAAAAAAAEXBFKJiQ46t8a00wAAAAAAAAAAAAAAAAAAAotBRr+VBAIQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACAAMAAAAQ888888888883/oKjnu3388888888888888888888/hdUErceJZE/my08888888888888888vI/EqREoQzZVmDIC228888888888885ymFs/mUDquk2a0wJyHn9888888888842u3Xes8xTomwA0oscaXoO7888888889mw3C8c8wA2S+eM4Q8wYEjSt+88888883VkOAUwMfES+aGCeQEw8cG1Qu388888mrTq4EYD8go6uX7pNKokQQGx+uJ88886Z/COiZGEwo2XlHqIiaT8wE68yceU888i8HZdDNbi9q60ayd8g+bO+SksA7vP8APPOAsBfJ04vQyjjIw1mAuQVu9HtoaqNP/OHsFJ/LZ8JL5ueJu1bDLkWd2Z4TuxY//KKbufW5z7TTjpwt2ch+iMtosOXcTwjpvMTC/wCoS1GGQjc+E6vdKsONzz6IllGP6PxcSL9gvWX2yOM++GJoMdwkGTGJ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" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);box-shadow:0 0 20px rgba(201,162,39,0.5);" alt="IGH">
+      </div>
+      <div class="logo-text" style="line-height:1.3;">
+        <h1>Institut Géopolitique Horizons</h1>
+        <p>Centre d'Analyse & Prévision Stratégique · Tanger</p>
+      </div>
+    </div>
+    <div class="header-center">
+      <div class="status-pod">
+        <div class="pulse-dot"></div>
+        <span>SYSTÈME ACTIF</span>
+      </div>
+      <div style="text-align:right">
+        <div class="clock-display" id="live-clock">--:--:--</div>
+        <div class="clock-date" id="live-date">Chargement...</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="hbtn" title="Alertes"><i class="fas fa-bell"></i><span class="badge alert-critical"></span></div>
+      <div class="hbtn" title="Recherche"><i class="fas fa-search"></i></div>
+      <div class="hbtn" title="Notifications"><i class="fas fa-satellite-dish"></i><span class="badge"></span></div>
+      <button class="admin-btn" onclick="openAdmin()"><i class="fas fa-plus"></i> Publier</button>
+    </div>
+  </div>
+</header>
+
+<!-- NAVIGATION -->
+<nav>
+  <div class="nav-inner">
+    <button class="ntab active" data-tab="dashboard" onclick="switchTab('dashboard')">
+      <i class="fas fa-th-large"></i> Vue d'Ensemble
+    </button>
+    <button class="ntab" data-tab="carte" onclick="switchTab('carte')">
+      <i class="fas fa-map"></i> Carte Live
+    </button>
+    <button class="ntab" data-tab="maghreb" onclick="switchTab('maghreb')">
+      <i class="fas fa-map-marker-alt"></i> Maghreb
+    </button>
+    <button class="ntab" data-tab="sahel" onclick="switchTab('sahel')">
+      <i class="fas fa-exclamation-triangle"></i> Sahel <span class="threat-badge" style="margin-left:4px"></span>
+    </button>
+    <button class="ntab" data-tab="afrique" onclick="switchTab('afrique')">
+      <i class="fas fa-globe-africa"></i> Afrique
+    </button>
+    <button class="ntab" data-tab="moyen-orient" onclick="switchTab('moyen-orient')">
+      <i class="fas fa-mosque"></i> Moyen-Orient
+    </button>
+    <button class="ntab" data-tab="securite" onclick="switchTab('securite')">
+      <i class="fas fa-shield-alt"></i> Sécurité
+    </button>
+    <button class="ntab" data-tab="economie" onclick="switchTab('economie')">
+      <i class="fas fa-chart-line"></i> Géoéconomie
+    </button>
+    <button class="ntab" data-tab="cognitif" onclick="switchTab('cognitif')">
+      <i class="fas fa-brain"></i> Guerre Cognitive
+    </button>
+    <button class="ntab" data-tab="sandbox" onclick="switchTab('sandbox')">
+      <i class="fas fa-flask"></i> Sandbox
+    </button>
+    <button class="ntab" data-tab="shadow" onclick="switchTab('shadow')">
+      <i class="fas fa-lock"></i> Shadow Briefing
+    </button>
+    <button class="ntab" data-tab="publications" onclick="switchTab('publications')">
+      <i class="fas fa-book"></i> Publications
+    </button>
+  </div>
+</nav>
+
+<div class="page-wrap">
+
+<!-- ═══════════ VUE D'ENSEMBLE ═══════════ -->
+<div class="tab-pane active" id="tab-dashboard">
+
+  <!-- ALERT BANNER -->
+  <div class="alert-banner mb20">
+    <div>
+      <div style="margin-bottom:6px">
+        <span class="alert-tag"><i class="fas fa-radiation"></i> ALERTE ROUGE — NIVEAU CRITIQUE</span>
+      </div>
+      <div style="font-family:'Cinzel',serif;font-size:15px;color:white;font-weight:600;margin-bottom:4px">
+        Crise Sécuritaire Sahel · Opération Hedgehog · Déploiement OTAN imminent
+      </div>
+      <div style="font-size:13px;color:var(--text2)">Tensions frontalières Mali-Niger-Burkina · Corridors terroristes JNIM/EIGS activés</div>
+    </div>
+    <button style="background:rgba(192,57,43,0.2);border:1px solid rgba(192,57,43,0.4);color:#ff8a80;padding:8px 16px;border-radius:6px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;cursor:pointer;white-space:nowrap" onclick="switchTab('securite')">
+      Analyse Complète →
+    </button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid mb24">
+    <div class="gc kpi-card c-gold">
+      <div class="kpi-val c-gold">247</div>
+      <div class="kpi-label">Publications</div>
+      <div class="kpi-delta" style="color:#00e676">▲ +12 ce mois</div>
+    </div>
+    <div class="gc kpi-card c-red">
+      <div class="kpi-val c-red">8</div>
+      <div class="kpi-label">Crises Actives</div>
+      <div class="kpi-delta" style="color:var(--red2)">▲ +2 cette semaine</div>
+    </div>
+    <div class="gc kpi-card c-cyan">
+      <div class="kpi-val c-cyan">14</div>
+      <div class="kpi-label">Pays Surveillés</div>
+      <div class="kpi-delta" style="color:var(--text2)">● Stable</div>
+    </div>
+    <div class="gc kpi-card c-green">
+      <div class="kpi-val c-green">98%</div>
+      <div class="kpi-label">Précision Prédictive</div>
+      <div class="kpi-delta" style="color:#00e676">▲ IGH-INDEX 2026</div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="g13 mb24">
+    <!-- RUBRIQUE SIDEBAR -->
+    <div>
+      <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text2);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px">
+        <i class="fas fa-folder-tree" style="color:var(--gold);margin-right:8px"></i>Rubriques
+      </div>
+      <div class="rubric-menu-item" onclick="toggleRubric('r-geo',this)">
+        <span><i class="fas fa-globe" style="color:#60a5fa;margin-right:8px"></i><span style="font-size:13px">Zones Géographiques</span></span>
+        <i class="fas fa-chevron-down" style="font-size:10px;color:var(--text2)"></i>
+      </div>
+      <div class="rubric-sub" id="r-geo">
+        <a class="rubric-sub-item" onclick="switchTab('maghreb')">Maghreb Occidental</a>
+        <a class="rubric-sub-item" onclick="switchTab('maghreb')">Maghreb Central</a>
+        <a class="rubric-sub-item" onclick="switchTab('sahel')">Sahel (Niger, Mali, Burkina)</a>
+        <a class="rubric-sub-item" onclick="switchTab('afrique')">Golfe de Guinée</a>
+        <a class="rubric-sub-item" onclick="switchTab('afrique')">Corne de l'Afrique</a>
+      </div>
+      <div class="rubric-menu-item" onclick="toggleRubric('r-theme',this)">
+        <span><i class="fas fa-tags" style="color:#4ade80;margin-right:8px"></i><span style="font-size:13px">Thématiques</span></span>
+        <i class="fas fa-chevron-down" style="font-size:10px;color:var(--text2)"></i>
+      </div>
+      <div class="rubric-sub" id="r-theme">
+        <a class="rubric-sub-item" onclick="switchTab('securite')">Terrorisme & Insurrection</a>
+        <a class="rubric-sub-item" onclick="switchTab('securite')">Sécurité Maritime</a>
+        <a class="rubric-sub-item">Migration & Frontières</a>
+        <a class="rubric-sub-item" onclick="switchTab('economie')">Énergie & Minerais</a>
+        <a class="rubric-sub-item" onclick="switchTab('cognitif')">Influence Étrangère</a>
+      </div>
+      <div class="rubric-menu-item" onclick="toggleRubric('r-acteur',this)">
+        <span><i class="fas fa-users" style="color:#c084fc;margin-right:8px"></i><span style="font-size:13px">Acteurs</span></span>
+        <i class="fas fa-chevron-down" style="font-size:10px;color:var(--text2)"></i>
+      </div>
+      <div class="rubric-sub" id="r-acteur">
+        <a class="rubric-sub-item">États & Gouvernements</a>
+        <a class="rubric-sub-item" onclick="switchTab('securite')">Groupes Armés</a>
+        <a class="rubric-sub-item">UA, CEDEAO, OTAN</a>
+        <a class="rubric-sub-item">Acteurs Non-Étatiques</a>
+      </div>
+      <div class="rubric-menu-item" onclick="toggleRubric('r-pub',this)">
+        <span><i class="fas fa-file-alt" style="color:var(--gold);margin-right:8px"></i><span style="font-size:13px">Publications</span></span>
+        <i class="fas fa-chevron-down" style="font-size:10px;color:var(--text2)"></i>
+      </div>
+      <div class="rubric-sub" id="r-pub">
+        <a class="rubric-sub-item" onclick="switchTab('publications')">Notes Stratégiques (NS)</a>
+        <a class="rubric-sub-item" onclick="switchTab('publications')">Dépêches Analytiques (DA)</a>
+        <a class="rubric-sub-item" onclick="switchTab('publications')">Flash Info</a>
+        <a class="rubric-sub-item" onclick="switchTab('publications')">Rapports Spéciaux</a>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- PREDICTIVE MINI -->
+      <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text2);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">
+        <i class="fas fa-chart-radar" style="color:var(--gold);margin-right:8px"></i>Prévision 30J
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+            <span style="color:var(--text2);font-family:'JetBrains Mono',monospace">MALI</span>
+            <span style="color:var(--red2);font-family:'JetBrains Mono',monospace">87%</span>
+          </div>
+          <div class="tension-track"><div class="tension-fill" style="width:87%;background:var(--red2)"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+            <span style="color:var(--text2);font-family:'JetBrains Mono',monospace">LIBYE</span>
+            <span style="color:var(--gold2);font-family:'JetBrains Mono',monospace">62%</span>
+          </div>
+          <div class="tension-track"><div class="tension-fill" style="width:62%;background:var(--gold)"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+            <span style="color:var(--text2);font-family:'JetBrains Mono',monospace">TUNISIE</span>
+            <span style="color:#60a5fa;font-family:'JetBrains Mono',monospace">41%</span>
+          </div>
+          <div class="tension-track"><div class="tension-fill" style="width:41%;background:#60a5fa"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div>
+      <!-- LAST ANALYSES -->
+      <div class="gc gc-gold p-content mb20" style="padding:20px;border-radius:12px">
+        <div style="font-family:'Cinzel',serif;font-size:13px;color:var(--gold2);letter-spacing:2px;margin-bottom:16px;text-transform:uppercase">
+          Dernières Analyses
+        </div>
+        <div id="pub-list" style="display:flex;flex-direction:column;gap:10px">
+          <!-- JS will populate + static entries below -->
+        </div>
+      </div>
+
+      <!-- CHARTS ROW -->
+      <div class="g2">
+        <div class="gc" style="padding:20px;border-radius:12px">
+          <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text2);letter-spacing:2px;margin-bottom:12px">INDICE DE TENSION RÉGIONALE</div>
+          <canvas id="tensionChart" height="160"></canvas>
+        </div>
+        <div class="gc" style="padding:20px;border-radius:12px">
+          <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text2);letter-spacing:2px;margin-bottom:12px">DISTRIBUTION DES CRISES</div>
+          <canvas id="crisisChart" height="160"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ CARTE LIVE ═══════════ -->
+<div class="tab-pane" id="tab-carte">
+  <div class="flex items-center justify-between mb20">
+    <div>
+      <div class="sec-title">Carte Géopolitique Live</div>
+      <div class="sec-sub">Surveillance en temps réel — Maghreb · Sahel · Moyen-Orient</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="layer-btn active" onclick="toggleLayer(this,'hotspots')"><i class="fas fa-fire" style="margin-right:4px"></i>HOTSPOTS</button>
+      <button class="layer-btn" onclick="toggleLayer(this,'infra')"><i class="fas fa-route" style="margin-right:4px"></i>INFRA</button>
+      <button class="layer-btn" onclick="toggleLayer(this,'military')"><i class="fas fa-crosshairs" style="margin-right:4px"></i>MILITAIRE</button>
+    </div>
+  </div>
+  <div class="map-container mb20">
+    <canvas id="geoCanvas"></canvas>
+    <div class="map-overlay-ui">
+      <div class="map-corner tl">IGH-MAP v3.1 · LIVE<br>MAGHREB / SAHEL / AFRIQUE</div>
+      <div class="map-corner tr">TANGER BASE<br>33°N · 5°W</div>
+      <!-- HOTSPOTS -->
+      <div class="hotspot hs-red" style="left:38%;top:28%" id="hs-mali">
+        <div class="hotspot-ring"><div class="hotspot-core"></div></div>
+        <div class="hs-tooltip">MALI<span class="hs-label">JNIM/EIGS · CRITIQUE</span></div>
+      </div>
+      <div class="hotspot hs-red" style="left:34%;top:24%" id="hs-burkina">
+        <div class="hotspot-ring"><div class="hotspot-core"></div></div>
+        <div class="hs-tooltip">BURKINA FASO<span class="hs-label">Instabilité sévère</span></div>
+      </div>
+      <div class="hotspot hs-amber" style="left:42%;top:22%" id="hs-niger">
+        <div class="hotspot-ring"><div class="hotspot-core"></div></div>
+        <div class="hs-tooltip">NIGER<span class="hs-label">Post-coup · Précaire</span></div>
+      </div>
+      <div class="hotspot hs-amber" style="left:52%;top:16%" id="hs-libye">
+        <div class="hotspot-ring"><div class="hotspot-core"></div></div>
+        <div class="hs-tooltip">LIBYE<span class="hs-label">Conflit intra-libyen</span></div>
+      </div>
+      <div class="hotspot hs-amber" style="left:22%;top:15%" id="hs-maroc">
+        <div class="hotspot-ring"><div class="hotspot-core"></div></div>
+        <div class="hs-tooltip">MAROC<span class="hs-label">Tension Algérie 8.4/10</span></div>
+      </div>
+      <div class="hotspot hs-red" style="left:54%;top:55%" id="hs-rdc">
+        <div class="hotspot-ring"><div class="hotspot-core"></div></div>
+        <div class="hs-tooltip">RDC — M23<span class="hs-label">Escalade active Goma</span></div>
+      </div>
+      <div class="hotspot hs-blue" style="left:32%;top:10%" id="hs-espagne">
+        <div class="hotspot-ring"><div class="hotspot-core"></div></div>
+        <div class="hs-tooltip">MÉDITERRANÉE<span class="hs-label">Route migration · Maritime</span></div>
+      </div>
+      <div class="map-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#e74c3c;box-shadow:0 0 6px #e74c3c"></div>Zone Critique</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--gold);box-shadow:0 0 6px var(--gold)"></div>Zone à Risque</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#00d4ff;box-shadow:0 0 6px #00d4ff"></div>Surveillance Active</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SATELLITE VIEW -->
+  <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text2);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px">
+    <i class="fas fa-satellite" style="color:var(--gold);margin-right:8px"></i>Imagerie Satellite Tactique
+  </div>
+  <div class="sat-grid">
+    <div class="sat-thumb"><div class="sat-overlay"></div><div class="sat-grid-lines"></div>
+      <div class="sat-crosshair" style="left:35%;top:40%"></div>
+      <div style="position:absolute;top:8px;left:8px;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--cyan);opacity:0.6">COORD: 17.5N 2.3W</div>
+      <div class="sat-label">MALI — GOUNDAM SECTOR</div>
+    </div>
+    <div class="sat-thumb"><div class="sat-overlay"></div><div class="sat-grid-lines"></div>
+      <div class="sat-crosshair" style="left:60%;top:55%;border-color:var(--gold)"></div>
+      <div style="position:absolute;top:8px;left:8px;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--cyan);opacity:0.6">COORD: 32.9N 13.1E</div>
+      <div class="sat-label">LIBYE — TRIPOLITAINE</div>
+    </div>
+    <div class="sat-thumb"><div class="sat-overlay"></div><div class="sat-grid-lines"></div>
+      <div class="sat-crosshair" style="left:45%;top:45%;border-color:var(--red2)"></div>
+      <div style="position:absolute;top:8px;left:8px;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--cyan);opacity:0.6">COORD: 1.7S 29.2E</div>
+      <div class="sat-label">RDC — GOMA PERIMETER</div>
+    </div>
+    <div class="sat-thumb"><div class="sat-overlay"></div><div class="sat-grid-lines"></div>
+      <div class="sat-crosshair" style="left:52%;top:60%;border-color:#00e676"></div>
+      <div style="position:absolute;top:8px;left:8px;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--cyan);opacity:0.6">COORD: 35.7N 5.8W</div>
+      <div class="sat-label">DÉTROIT — GIBRALTAR</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MAGHREB ═══════════ -->
+<div class="tab-pane" id="tab-maghreb">
+  <div class="flex items-center justify-between mb24">
+    <div>
+      <div class="sec-title">Maghreb</div>
+      <div class="sec-sub">Analyse géopolitique — Maroc · Algérie · Tunisie · Libye</div>
+    </div>
+    <div style="background:var(--gold-dim);border:1px solid var(--border);padding:8px 16px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold)">
+      IGH-INDEX · 7.8/10
+    </div>
+  </div>
+  <div class="g2 mb20">
+    <div class="country-card" style="border-color:rgba(239,68,68,0.2)">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:#ef4444;border-radius:3px 0 0 3px"></div>
+      <h3>🇲🇦 Maroc</h3>
+      <div class="tension-row mb8">
+        <div class="flex items-center justify-between mb8" style="margin-bottom:8px">
+          <span style="font-size:12px;color:var(--text2)">Tension avec Algérie</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--red2)">8.4/10</span>
+        </div>
+        <div class="tension-track"><div class="tension-fill" style="width:84%;background:linear-gradient(90deg,var(--gold),var(--red2))"></div></div>
+      </div>
+      <ul style="list-style:none;padding:0;font-size:13px;color:var(--text2)">
+        <li style="padding:5px 0;border-bottom:1px solid var(--border2);cursor:pointer" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text2)'">→ Politique étrangère & Sahara Occidental</li>
+        <li style="padding:5px 0;border-bottom:1px solid var(--border2);cursor:pointer" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text2)'">→ Coopération sécuritaire avec les EAU</li>
+        <li style="padding:5px 0;cursor:pointer" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text2)'">→ Accords d'Abraham & normalisation</li>
+      </ul>
+    </div>
+    <div class="country-card">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:#f59e0b;border-radius:3px 0 0 3px"></div>
+      <h3>🇩🇿 Algérie</h3>
+      <div class="flex items-center justify-between mb8" style="margin-bottom:8px">
+        <span style="font-size:12px;color:var(--text2)">Nomination Harris (US)</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold)">ACTIF</span>
+      </div>
+      <ul style="list-style:none;padding:0;font-size:13px;color:var(--text2)">
+        <li style="padding:5px 0;border-bottom:1px solid var(--border2);cursor:pointer" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text2)'">→ Transition politique post-Bouteflika</li>
+        <li style="padding:5px 0;border-bottom:1px solid var(--border2);cursor:pointer" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text2)'">→ Diplomatie US — Coercition ou partenariat?</li>
+        <li style="padding:5px 0;cursor:pointer" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text2)'">→ Arsenal militaire & Wagner</li>
+      </ul>
+    </div>
+    <div class="country-card">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:#10b981;border-radius:3px 0 0 3px"></div>
+      <h3>🇹🇳 Tunisie</h3>
+      <ul style="list-style:none;padding:0;font-size:13px;color:var(--text2)">
+        <li style="padding:5px 0;border-bottom:1px solid var(--border2)">→ Dérive autoritaire — Saied</li>
+        <li style="padding:5px 0;border-bottom:1px solid var(--border2)">→ Crise économique · FMI</li>
+        <li style="padding:5px 0">→ Hub migratoire · Méditerranée</li>
+      </ul>
+    </div>
+    <div class="country-card">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:#60a5fa;border-radius:3px 0 0 3px"></div>
+      <h3>🇱🇾 Libye</h3>
+      <div class="flex items-center justify-between mb8" style="margin-bottom:8px">
+        <span style="font-size:12px;color:var(--text2)">Instabilité</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold2)">6.2/10</span>
+      </div>
+      <ul style="list-style:none;padding:0;font-size:13px;color:var(--text2)">
+        <li style="padding:5px 0;border-bottom:1px solid var(--border2)">→ Conflit intra-libyen · GNU vs HoR</li>
+        <li style="padding:5px 0;border-bottom:1px solid var(--border2)">→ Ingérences turques, émiriennes, russes</li>
+        <li style="padding:5px 0">→ Ressources pétrolières · 1.2M barils/j</li>
+      </ul>
+    </div>
+  </div>
+  <div class="gc" style="padding:20px;border-radius:12px">
+    <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text2);letter-spacing:2px;margin-bottom:16px">INDEX DE TENSIONS MAGHREB — 2025/2026</div>
+    <canvas id="maghrebChart" height="140"></canvas>
+  </div>
+</div>
+
+<!-- ═══════════ SAHEL ═══════════ -->
+<div class="tab-pane" id="tab-sahel">
+  <div class="flex items-center justify-between mb24">
+    <div>
+      <div class="sec-title">Sahel</div>
+      <div class="sec-sub">Terrorisme, coups d'État et dynamiques sécuritaires</div>
+    </div>
+    <span style="padding:6px 16px;background:rgba(192,57,43,0.15);border:1px solid rgba(192,57,43,0.4);border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red2);animation:blinkRed 1.5s infinite">
+      ⚠ ZONE À HAUT RISQUE
+    </span>
+  </div>
+  <div class="g3 mb20">
+    <div class="gc" style="padding:18px;border-radius:10px;border-top:3px solid var(--red2)">
+      <h4 style="font-family:'Cinzel',serif;font-size:13px;color:white;margin-bottom:12px">🇲🇱 MALI</h4>
+      <div style="font-size:12px;display:flex;flex-direction:column;gap:6px;">
+        <div class="flex items-center justify-between"><span style="color:var(--text2)">Groupes actifs</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red2)">JNIM · EIGS</span></div>
+        <div class="flex items-center justify-between"><span style="color:var(--text2)">Présence PMC</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold)">Africa Corps</span></div>
+        <div class="flex items-center justify-between"><span style="color:var(--text2)">Niveau</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red2)">CRITIQUE</span></div>
+      </div>
+    </div>
+    <div class="gc" style="padding:18px;border-radius:10px;border-top:3px solid #f97316">
+      <h4 style="font-family:'Cinzel',serif;font-size:13px;color:white;margin-bottom:12px">🇧🇫 BURKINA FASO</h4>
+      <div style="font-size:12px;display:flex;flex-direction:column;gap:6px;">
+        <div class="flex items-center justify-between"><span style="color:var(--text2)">Groupes actifs</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red2)">JNIM</span></div>
+        <div class="flex items-center justify-between"><span style="color:var(--text2)">Régime</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold)">Junte (2022)</span></div>
+        <div class="flex items-center justify-between"><span style="color:var(--text2)">Niveau</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#f97316">ÉLEVÉ</span></div>
+      </div>
+    </div>
+    <div class="gc" style="padding:18px;border-radius:10px;border-top:3px solid var(--gold)">
+      <h4 style="font-family:'Cinzel',serif;font-size:13px;color:white;margin-bottom:12px">🇳🇪 NIGER</h4>
+      <div style="font-size:12px;display:flex;flex-direction:column;gap:6px;">
+        <div class="flex items-center justify-between"><span style="color:var(--text2)">Transition</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold)">Post-coup</span></div>
+        <div class="flex items-center justify-between"><span style="color:var(--text2)">CEDEAO</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red2)">Sanctions</span></div>
+        <div class="flex items-center justify-between"><span style="color:var(--text2)">Niveau</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold2)">PRÉCAIRE</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="g2 mb20">
+    <div class="gc" style="padding:20px;border-radius:12px">
+      <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text2);letter-spacing:2px;margin-bottom:12px">ATTAQUES TERRORISTES 2024–2026</div>
+      <canvas id="sahelChart" height="160"></canvas>
+    </div>
+    <div class="gc" style="padding:20px;border-radius:12px">
+      <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text2);letter-spacing:2px;margin-bottom:16px">FORCES INTERNATIONALES</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="threat-row">
+          <span style="font-size:13px;color:var(--text)">Barkhane (France)</span>
+          <span class="threat-level" style="background:rgba(100,100,100,0.2);color:var(--text2);border-color:rgba(100,100,100,0.3)">RETRAIT 2022</span>
+        </div>
+        <div class="threat-row">
+          <span style="font-size:13px;color:var(--text)">MINUSMA (ONU)</span>
+          <span class="threat-level" style="background:rgba(100,100,100,0.2);color:var(--text2);border-color:rgba(100,100,100,0.3)">TERMINÉ 2023</span>
+        </div>
+        <div class="threat-row">
+          <span style="font-size:13px;color:var(--text)">Africa Corps (Wagner)</span>
+          <span class="threat-level tl-critical">ACTIF</span>
+        </div>
+        <div class="threat-row">
+          <span style="font-size:13px;color:var(--text)">Opération Hedgehog</span>
+          <span class="threat-level tl-high">DÉPLOIEMENT</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ AFRIQUE ═══════════ -->
+<div class="tab-pane" id="tab-afrique">
+  <div class="sec-title mb8">Afrique Subsaharienne</div>
+  <div class="sec-sub mb24">Golfe de Guinée · Corne de l'Afrique · Grands Lacs</div>
+  <div class="g2 mb20">
+    <div class="gc" style="padding:20px;border-radius:12px">
+      <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text2);letter-spacing:2px;margin-bottom:16px">PIRATERIE MARITIME — GOLFE DE GUINÉE</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div><div class="flex items-center justify-between" style="font-size:12px;margin-bottom:5px"><span style="color:var(--text2)">Nigeria</span><span style="color:var(--red2);font-family:'JetBrains Mono',monospace">75% des incidents</span></div><div class="tension-track"><div class="tension-fill" style="width:75%;background:var(--red2)"></div></div></div>
+        <div><div class="flex items-center justify-between" style="font-size:12px;margin-bottom:5px"><span style="color:var(--text2)">Ghana</span><span style="color:var(--gold);font-family:'JetBrains Mono',monospace">32%</span></div><div class="tension-track"><div class="tension-fill" style="width:32%;background:var(--gold)"></div></div></div>
+        <div><div class="flex items-center justify-between" style="font-size:12px;margin-bottom:5px"><span style="color:var(--text2)">Bénin / Togo</span><span style="color:#60a5fa;font-family:'JetBrains Mono',monospace">15%</span></div><div class="tension-track"><div class="tension-fill" style="width:15%;background:#60a5fa"></div></div></div>
+      </div>
+    </div>
+    <div class="gc" style="padding:20px;border-radius:12px">
+      <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text2);letter-spacing:2px;margin-bottom:12px">CONFLIT RDC — M23</div>
+      <div style="padding:14px;background:rgba(192,57,43,0.1);border:1px solid rgba(192,57,43,0.25);border-radius:8px;margin-bottom:12px">
+        <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--red2);margin-bottom:6px"><i class="fas fa-fire" style="margin-right:6px"></i>ESCALADE ACTIVE</div>
+        <div style="font-size:13px;color:var(--text2)">Progression vers Bukavu et Goma. Rwanda accusé de soutien. Implications régionales Congo-Rwanda-Ouganda.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="infra-item"><span style="font-size:13px">Frontière RDC-Rwanda</span><span class="infra-status is-halt">FERMÉE</span></div>
+        <div class="infra-item"><span style="font-size:13px">Mission MONUSCO</span><span class="infra-status is-progress">EN COURS</span></div>
+        <div class="infra-item"><span style="font-size:13px">Réfugiés déplacés</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red2)">+2.1M</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MOYEN-ORIENT ═══════════ -->
+<div class="tab-pane" id="tab-moyen-orient">
+  <div class="sec-title mb8">Moyen-Orient & Influence Régionale</div>
+  <div class="sec-sub mb24">Projections des puissances du Golfe sur l'Afrique du Nord</div>
+  <div class="g3 mb20">
+    <div class="country-card"><div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:#22c55e"></div><h3>🇸🇦 Arabie Saoudite</h3><p style="font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.6">Influence économique croissante. Vision 2030 et investissements massifs en Afrique de l'Est.</p><div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold)">IGH-DA-2026-01-045</div></div>
+    <div class="country-card"><div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--red2)"></div><h3>🇦🇪 Émirats Arabes Unis</h3><p style="font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.6">Guerre cognitive contre le Maroc. Ports militaires. Opérations d'influence documentées.</p><div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--red2)">⚠ RAPPORT RS-2026-01-003</div></div>
+    <div class="country-card"><div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:#60a5fa"></div><h3>🇹🇷 Turquie</h3><p style="font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.6">Expansion militaro-commerciale. Base navale en Somalie. Drones Bayraktar au Sahel.</p></div>
+    <div class="country-card"><div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold)"></div><h3>🇮🇱 Israël</h3><p style="font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.6">Accords d'Abraham & normalisation. Coopération sécuritaire avec le Maroc.</p></div>
+    <div class="country-card"><div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:#c084fc"></div><h3>🇮🇷 Iran</h3><p style="font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.6">Influence chiite en Afrique de l'Ouest. Réseaux au Nigeria, Ghana, Sénégal.</p></div>
+    <div class="country-card"><div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:#38bdf8"></div><h3>🇶🇦 Qatar</h3><p style="font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.6">Médiation diplomatique sahélienne. Al Jazeera comme outil de soft power.</p></div>
+  </div>
+</div>
+
+<!-- ═══════════ SÉCURITÉ ═══════════ -->
+<div class="tab-pane" id="tab-securite">
+  <div class="sec-title mb8">Sécurité & Défense</div>
+  <div class="sec-sub mb24">Terrorisme · Groupes armés · Stratégies militaires</div>
+  <div class="g2 mb20">
+    <div>
+      <div class="gc" style="padding:20px;border-radius:12px;margin-bottom:16px">
+        <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text2);letter-spacing:2px;margin-bottom:16px">GROUPES ARMÉS SURVEILLÉS</div>
+        <div class="threat-row"><div><div style="font-size:13px;color:var(--text);font-weight:600">JNIM</div><div style="font-size:11px;color:var(--text2)">Jama'at Nusrat al-Islam — Sahel</div></div><span class="threat-level tl-critical">CRITIQUE</span></div>
+        <div class="threat-row"><div><div style="font-size:13px;color:var(--text);font-weight:600">EIGS / État Islamique GS</div><div style="font-size:11px;color:var(--text2)">Lacs Tchad, Mali, Niger</div></div><span class="threat-level tl-critical">CRITIQUE</span></div>
+        <div class="threat-row"><div><div style="font-size:13px;color:var(--text);font-weight:600">Africa Corps (ex-Wagner)</div><div style="font-size:11px;color:var(--text2)">PMC — Mali, Burkina, Libye</div></div><span class="threat-level tl-high">ÉLEVÉE</span></div>
+        <div class="threat-row"><div><div style="font-size:13px;color:var(--text);font-weight:600">M23</div><div style="font-size:11px;color:var(--text2)">Mouvement 23 Mars — Est RDC</div></div><span class="threat-level tl-high">ÉLEVÉE</span></div>
+        <div class="threat-row"><div><div style="font-size:13px;color:var(--text);font-weight:600">Boko Haram / ISWAP</div><div style="font-size:11px;color:var(--text2)">Lac Tchad Basin</div></div><span class="threat-level tl-medium">MODÉRÉE</span></div>
+      </div>
+      <div class="gc" style="padding:20px;border-radius:12px">
+        <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text2);letter-spacing:2px;margin-bottom:12px">OPÉRATIONS EN COURS</div>
+        <div class="infra-item"><span style="font-size:13px">Opération Hedgehog</span><span class="infra-status is-progress">DÉPLOIEMENT</span></div>
+        <div class="infra-item"><span style="font-size:13px">Mission MINUSCA (RCA)</span><span class="infra-status is-active">ACTIF</span></div>
+        <div class="infra-item"><span style="font-size:13px">ATMIS (Somalie)</span><span class="infra-status is-active">ACTIF</span></div>
+        <div class="infra-item"><span style="font-size:13px">Barkhane</span><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2)">RETIRÉ</span></div>
+      </div>
+    </div>
+    <div class="gc" style="padding:20px;border-radius:12px">
+      <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text2);letter-spacing:2px;margin-bottom:12px">TENDANCE SÉCURITAIRE — PRÉVISION 12 MOIS</div>
+      <canvas id="securityChart" height="260"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ GÉOÉCONOMIE ═══════════ -->
+<div class="tab-pane" id="tab-economie">
+  <div class="sec-title mb8">Géoéconomie</div>
+  <div class="sec-sub mb24">Ressources stratégiques · Infrastructures · Flux commerciaux</div>
+  <div class="g2 mb20">
+    <div class="gc" style="padding:20px;border-radius:12px">
+      <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text2);letter-spacing:2px;margin-bottom:16px">RESSOURCES STRATÉGIQUES</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div><div class="flex items-center justify-between" style="font-size:13px;margin-bottom:5px"><span style="color:var(--text)">🪨 Phosphate (Maroc)</span><span style="color:var(--gold2);font-family:'JetBrains Mono',monospace">70% mondial</span></div><div class="tension-track"><div class="tension-fill" style="width:70%;background:var(--gold)"></div></div></div>
+        <div><div class="flex items-center justify-between" style="font-size:13px;margin-bottom:5px"><span style="color:var(--text)">🛢️ Pétrole (Libye)</span><span style="color:var(--red2);font-family:'JetBrains Mono',monospace">1.2M b/j</span></div><div class="tension-track"><div class="tension-fill" style="width:45%;background:var(--red2)"></div></div></div>
+        <div><div class="flex items-center justify-between" style="font-size:13px;margin-bottom:5px"><span style="color:var(--text)">☢️ Uranium (Niger)</span><span style="color:#4ade80;font-family:'JetBrains Mono',monospace">7% mondial</span></div><div class="tension-track"><div class="tension-fill" style="width:25%;background:#4ade80"></div></div></div>
+        <div><div class="flex items-center justify-between" style="font-size:13px;margin-bottom:5px"><span style="color:var(--text)">⛽ Gaz naturel (Algérie)</span><span style="color:#60a5fa;font-family:'JetBrains Mono',monospace">2e Afrique</span></div><div class="tension-track"><div class="tension-fill" style="width:55%;background:#60a5fa"></div></div></div>
+        <div><div class="flex items-center justify-between" style="font-size:13px;margin-bottom:5px"><span style="color:var(--text)">🔋 Cobalt (RDC)</span><span style="color:#c084fc;font-family:'JetBrains Mono',monospace">65% mondial</span></div><div class="tension-track"><div class="tension-fill" style="width:65%;background:#c084fc"></div></div></div>
+      </div>
+    </div>
+    <div class="gc" style="padding:20px;border-radius:12px">
+      <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text2);letter-spacing:2px;margin-bottom:16px">INFRASTRUCTURES CRITIQUES</div>
+      <div class="infra-item"><div><div style="font-size:13px;color:var(--text);font-weight:600">Gasdotto Maghreb-Europe</div><div style="font-size:11px;color:var(--text2)">Algérie → Tunisie → Italie</div></div><span class="infra-status is-active">ACTIF</span></div>
+      <div class="infra-item"><div><div style="font-size:13px;color:var(--text);font-weight:600">Niger-Bénin Pipeline</div><div style="font-size:11px;color:var(--text2)">1,980 km — Pétrole nigérien</div></div><span class="infra-status is-progress">EN COURS</span></div>
+      <div class="infra-item"><div><div style="font-size:13px;color:var(--text);font-weight:600">Gazoduc Nigeria-Maroc</div><div style="font-size:11px;color:var(--text2)">5,600 km — Projet stratégique</div></div><span class="infra-status is-planned">PLANIFIÉ</span></div>
+      <div class="infra-item"><div><div style="font-size:13px;color:var(--text);font-weight:600">Corridor Lagos-Abidjan</div><div style="font-size:11px;color:var(--text2)">Autoroute côtière CEDEAO</div></div><span class="infra-status is-planned">PLANIFIÉ</span></div>
+      <div class="infra-item"><div><div style="font-size:13px;color:var(--text);font-weight:600">Port de Tanger Med</div><div style="font-size:11px;color:var(--text2)">Hub stratégique Méditerranée</div></div><span class="infra-status is-active">ACTIF</span></div>
+    </div>
+  </div>
+  <div class="gc" style="padding:20px;border-radius:12px">
+    <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text2);letter-spacing:2px;margin-bottom:12px">FLUX D'INVESTISSEMENTS ÉTRANGERS EN AFRIQUE 2024–2026 (Mds USD)</div>
+    <canvas id="econChart" height="120"></canvas>
+  </div>
+</div>
+
+<!-- ═══════════ GUERRE COGNITIVE ═══════════ -->
+<div class="tab-pane" id="tab-cognitif">
+  <div class="sec-title mb8">Radar Guerre Cognitive</div>
+  <div class="sec-sub mb24">Désinformation · Narratifs hostiles · Fermes de bots · Influence étrangère</div>
+  <div class="g2 mb20">
+    <div>
+      <div class="gc" style="padding:20px;border-radius:12px;margin-bottom:16px">
+        <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text2);letter-spacing:2px;margin-bottom:16px">OPÉRATIONS D'INFLUENCE DÉTECTÉES</div>
+        <div class="cog-item">
+          <div class="cog-src" style="background:rgba(192,57,43,0.15);color:var(--red2)">🇦🇪</div>
+          <div style="flex:1">
+            <div class="cog-title">Guerre cognitive émirienne — Maroc</div>
+            <div class="cog-meta">SOURCE: EAU · CIBLE: Opinion marocaine · VECTEUR: Réseaux sociaux</div>
+            <div class="intensity-bar"><span class="intensity-label">Intensité</span><div class="tension-track" style="flex:1"><div class="tension-fill" style="width:87%;background:var(--red2)"></div></div><span style="font-size:11px;color:var(--red2);font-family:'JetBrains Mono',monospace">87%</span></div>
+          </div>
+        </div>
+        <div class="cog-item">
+          <div class="cog-src" style="background:rgba(201,162,39,0.15);color:var(--gold)">🇷🇺</div>
+          <div style="flex:1">
+            <div class="cog-title">Narratif anti-France — Sahel</div>
+            <div class="cog-meta">SOURCE: Russia · CIBLE: Burkina, Mali, Niger · VECTEUR: Media RT, Telegram</div>
+            <div class="intensity-bar"><span class="intensity-label">Intensité</span><div class="tension-track" style="flex:1"><div class="tension-fill" style="width:92%;background:var(--gold)"></div></div><span style="font-size:11px;color:var(--gold);font-family:'JetBrains Mono',monospace">92%</span></div>
+          </div>
+        </div>
+        <div class="cog-item">
+          <div class="cog-src" style="background:rgba(96,165,250,0.15);color:#60a5fa">🇩🇿</div>
+          <div style="flex:1">
+            <div class="cog-title">Campagne anti-Maroc — Sahara</div>
+            <div class="cog-meta">SOURCE: Algérie · CIBLE: Opinion internationale · VECTEUR: Presse d'État</div>
+            <div class="intensity-bar"><span class="intensity-label">Intensité</span><div class="tension-track" style="flex:1"><div class="tension-fill" style="width:74%;background:#60a5fa"></div></div><span style="font-size:11px;color:#60a5fa;font-family:'JetBrains Mono',monospace">74%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="gc" style="padding:20px;border-radius:12px">
+      <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--text2);letter-spacing:2px;margin-bottom:12px">PROPAGATION DES NARRATIFS HOSTILES</div>
+      <canvas id="cogChart" height="220"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SANDBOX ═══════════ -->
+<div class="tab-pane" id="tab-sandbox">
+  <div class="sec-title mb8">Simulateur de Scénarios — "What If?"</div>
+  <div class="sec-sub mb24">Testez des hypothèses géopolitiques et visualisez les effets de bord</div>
+  <div style="font-family:'Cinzel',serif;font-size:11px;color:var(--text2);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Sélectionnez un scénario</div>
+  <div class="scenario-grid mb20" id="scenarioGrid">
+    <div class="scenario-card" onclick="selectScenario(this,'gazoduc')">
+      <div class="sc-icon">⛽</div>
+      <div class="sc-title">Coupure du Gazoduc Algérie-Europe</div>
+      <div class="sc-desc">Fermeture du pipeline transsaharien suite à tensions diplomatiques</div>
+    </div>
+    <div class="scenario-card" onclick="selectScenario(this,'coup')">
+      <div class="sc-icon">🎖️</div>
+      <div class="sc-title">Coup d'État en Tunisie</div>
+      <div class="sc-desc">Renversement du régime Saied — Instabilité gouvernementale</div>
+    </div>
+    <div class="scenario-card" onclick="selectScenario(this,'sahara')">
+      <div class="sc-icon">🏜️</div>
+      <div class="sc-title">Escalade Sahara Occidental</div>
+      <div class="sc-desc">Reprise des hostilités Maroc — Front Polisario</div>
+    </div>
+    <div class="scenario-card" onclick="selectScenario(this,'cedeao')">
+      <div class="sc-icon">🤝</div>
+      <div class="sc-title">Implosion de la CEDEAO</div>
+      <div class="sc-desc">Retrait des États de l'AES — Recomposition régionale</div>
+    </div>
+  </div>
+  <div class="sandbox-result" id="sandboxResult">
+    <div class="sr-title" id="srTitle"></div>
+    <div id="srEffects"></div>
+    <canvas id="sandboxChart" height="120" style="margin-top:16px"></canvas>
+  </div>
+</div>
+
+<!-- ═══════════ SHADOW BRIEFING ═══════════ -->
+<div class="tab-pane" id="tab-shadow">
+  <div class="flex items-center justify-between mb24">
+    <div>
+      <div class="sec-title">Shadow Briefing</div>
+      <div class="sec-sub">Dépêches de l'Ombre — Accès VIP décideurs uniquement</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;background:rgba(156,39,176,0.1);border:1px solid rgba(156,39,176,0.3);padding:8px 16px;border-radius:8px">
+      <i class="fas fa-lock" style="color:#ce93d8;font-size:12px"></i>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#ce93d8;letter-spacing:2px">ACCÈS RESTREINT</span>
+    </div>
+  </div>
+  <div style="margin-bottom:24px">
+    <div class="briefing-box mb20">
+      <div class="briefing-date">SMART BRIEFING MATINAL — 07 MARS 2026 · 06H00 TAN</div>
+      <div style="font-family:'Cinzel',serif;font-size:13px;color:var(--gold2);letter-spacing:2px;margin-bottom:16px">CE QU'IL FAUT SAVOIR AUJOURD'HUI</div>
+      <div class="briefing-point"><div class="bp-num">1</div><div class="bp-text"><strong>Hedgehog :</strong> Déploiement OTAN confirmé par 3 sources distinctes. Le Maroc pressenti pour accueillir une base logistique avancée.</div></div>
+      <div class="briefing-point"><div class="bp-num">2</div><div class="bp-text"><strong>Harris–Alger :</strong> La nomination signale un changement de paradigme US. Pression sur le dossier gaz naturel et accès aux bases militaires.</div></div>
+      <div class="briefing-point"><div class="bp-num">3</div><div class="bp-text"><strong>EAU–Maroc :</strong> Nouvelles preuves d'opérations de désinformation ciblant les institutions financières marocaines.</div></div>
+      <div style="margin-top:16px;padding:12px;background:var(--gold-dim);border-radius:8px;font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--gold);letter-spacing:0.5px">
+        ► ACTIONS PRÉCONISÉES : Renforcer la surveillance OSINT sur les canaux Telegram sahaliens. Préparer une note d'urgence sur le couloir énergétique Algeria-EU.
+      </div>
+    </div>
+  </div>
+  <div class="shadow-card">
+    <div class="shadow-level sl-vip">VIP · CONFIDENTIEL</div>
+    <div class="shadow-title">Le Deal Secret Maroc-Israël : Dimension Militaire Révélée</div>
+    <div class="shadow-body">Selon des sources de haut rang, la normalisation maroco-israélienne inclut un accord-cadre de coopération en matière de renseignement électronique. Des techniciens de Unit 8200 seraient actifs sur le sol marocain depuis T3 2025.</div>
+    <div class="shadow-action">Demander une analyse croisée sur les implications pour les relations Maroc-Golfe</div>
+  </div>
+  <div class="shadow-card">
+    <div class="shadow-level sl-secret">SECRET · DIFF. RESTREINTE</div>
+    <div class="shadow-title">Wagner/Africa Corps : Nouvelle Génération de Financement</div>
+    <div class="shadow-body">Le financement du groupe passe désormais par trois sociétés écrans enregistrées à Dubaï et aux Seychelles. Les contrats d'extraction minière au Soudan et en RCA constituent le nouveau modèle économique post-Prigojine.</div>
+    <div class="shadow-action">Croiser avec les données de suivi des flux financiers IGH-FIN-2026</div>
+  </div>
+  <div class="shadow-card">
+    <div class="shadow-level sl-alpha">ALPHA · INTELLIGENCE PRÉDICTIVE</div>
+    <div class="shadow-title">Probabilité de Coup d'État au Tchad — Fenêtre Critique</div>
+    <div class="shadow-body">Les indicateurs hybrides IGH signalent une convergence de facteurs déstabilisateurs au Tchad : dissensions au sein des FAT, pression des groupes armés du Tibesti, et repositionnement diplomatique français. Probabilité estimée: 34% dans les 90 prochains jours.</div>
+    <div class="shadow-action">Déclencher protocole VEILLE ACTIVE Tchad — Niveau 2</div>
+  </div>
+</div>
+
+<!-- ═══════════ PUBLICATIONS ═══════════ -->
+<div class="tab-pane" id="tab-publications">
+  <div class="flex items-center justify-between mb24">
+    <div>
+      <div class="sec-title">Publications IGH</div>
+      <div class="sec-sub">Notes Stratégiques · Dépêches Analytiques · Rapports Spéciaux</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="admin-btn" onclick="openAdmin()"><i class="fas fa-plus" style="margin-right:6px"></i>Nouvelle Publication</button>
+      <select id="filterType" style="background:var(--glass2);border:1px solid var(--border2);color:var(--text);padding:8px 12px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:11px;outline:none" onchange="filterPubs()">
+        <option value="">Tous les types</option>
+        <option value="NS">Notes Stratégiques (NS)</option>
+        <option value="DA">Dépêches Analytiques (DA)</option>
+        <option value="RS">Rapports Spéciaux (RS)</option>
+        <option value="FI">Flash Info (FI)</option>
+      </select>
+      <select id="filterZone" style="background:var(--glass2);border:1px solid var(--border2);color:var(--text);padding:8px 12px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:11px;outline:none" onchange="filterPubs()">
+        <option value="">Toutes zones</option>
+        <option value="Maghreb">Maghreb</option>
+        <option value="Sahel">Sahel</option>
+        <option value="Moyen-Orient">Moyen-Orient</option>
+        <option value="Sécurité">Sécurité</option>
+      </select>
+    </div>
+  </div>
+  <div id="pub-full-list" style="display:flex;flex-direction:column;gap:12px"></div>
+</div>
+
+</div><!-- end page-wrap -->
+
+<!-- ADMIN MODAL -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal-box">
+    <button class="btn-close" onclick="closeAdmin()"><i class="fas fa-times"></i></button>
+    <div class="modal-title"><i class="fas fa-satellite-dish" style="margin-right:10px;font-size:16px"></i>Publier une Dépêche IGH</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Type de Document</label>
+        <select class="form-select" id="f-type">
+          <option value="NS">Note Stratégique (IGH-NS)</option>
+          <option value="DA">Dépêche Analytique (IGH-DA)</option>
+          <option value="RS">Rapport Spécial (IGH-RS)</option>
+          <option value="FI">Flash Info (IGH-FI)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Zone Géographique</label>
+        <select class="form-select" id="f-zone">
+          <option>Maghreb</option>
+          <option>Sahel</option>
+          <option>Afrique Subsaharienne</option>
+          <option>Moyen-Orient</option>
+          <option>Sécurité & Défense</option>
+          <option>Géoéconomie</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Titre de l'Analyse</label>
+      <input class="form-input" id="f-title" type="text" placeholder="Ex: Nomination Harris : implications pour l'Algérie...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Résumé Exécutif</label>
+      <textarea class="form-textarea" id="f-summary" placeholder="Synthèse de l'analyse (2-3 phrases)..."></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Niveau de Menace</label>
+        <select class="form-select" id="f-threat">
+          <option>Standard</option>
+          <option>Veille</option>
+          <option>Alerte Jaune</option>
+          <option>Alerte Orange</option>
+          <option>Alerte Rouge</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Auteur / Analyste</label>
+        <input class="form-input" id="f-author" type="text" placeholder="Ex: A. Benali, Directeur IGH">
+      </div>
+    </div>
+    <button class="btn-pub" onclick="publishDoc()">
+      <i class="fas fa-paper-plane" style="margin-right:8px"></i>PUBLIER & DIFFUSER
+    </button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-icon">📡</div>
+  <div class="toast-text"><strong>Publication Diffusée</strong>Dépêche ajoutée au système IGH</div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────
+const publications = [
+  { id:'IGH-NS-2026-02-017', type:'NS', zone:'Maghreb', title:'Nomination Schapiro : Vers une diplomatie US de la coercition à l\'égard de l\'Algérie ?', summary:'Analyse des implications de la nomination du nouvel ambassadeur américain à Alger et du pivot stratégique US dans la région.', views:1247, date:'28 Fév 2026', threat:'Veille' },
+  { id:'IGH-DA-2026-02-089', type:'DA', zone:'Sahel', title:'Opération Hedgehog : Déploiement OTAN dans le Sahel', summary:'Dépêche analytique sur les mouvements de troupes et les implications sécuritaires pour le Maghreb et ses partenaires.', views:892, date:'28 Fév 2026', threat:'Alerte Rouge' },
+  { id:'IGH-RS-2026-01-003', type:'RS', zone:'Moyen-Orient', title:'La Guerre Cognitive Émirienne contre le Maroc', summary:'Rapport spécial sur les opérations d\'influence des Émirats Arabes Unis et les stratégies de déstabilisation institutionnelle.', views:2156, date:'15 Fév 2026', threat:'Alerte Orange' },
+  { id:'IGH-DA-2026-01-045', type:'DA', zone:'Moyen-Orient', title:'Vision 2030 Saoudienne : Recomposition des alliances en Afrique de l\'Est', summary:'Analyse des investissements stratégiques de Riyad et leur impact sur l\'équilibre des puissances régionales.', views:634, date:'10 Fév 2026', threat:'Standard' },
+  { id:'IGH-FI-2026-02-012', type:'FI', zone:'Sécurité', title:'Flash Info : Africa Corps — Repositionnement au Burkina Faso', summary:'Signal d\'alerte sur les mouvements de personnels mercenaires en direction de Ouagadougou.', views:415, date:'25 Fév 2026', threat:'Alerte Rouge' },
+];
+
+// ─── CLOCK ───────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const opts = { timeZone:'Africa/Casablanca', hour:'2-digit', minute:'2-digit', second:'2-digit' };
+  document.getElementById('live-clock').textContent = now.toLocaleTimeString('fr-FR', opts);
+  const d = now.toLocaleDateString('fr-FR', { timeZone:'Africa/Casablanca', weekday:'short', day:'2-digit', month:'short', year:'numeric' });
+  document.getElementById('live-date').textContent = d.toUpperCase();
+}
+setInterval(updateClock, 1000); updateClock();
+
+// ─── TABS ─────────────────────────────────────
+function switchTab(id) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+id)?.classList.add('active');
+  document.querySelector(`[data-tab="${id}"]`)?.classList.add('active');
+}
+
+// ─── RUBRIC TOGGLE ────────────────────────────
+function toggleRubric(id, el) {
+  const sub = document.getElementById(id);
+  sub.classList.toggle('open');
+  el.classList.toggle('open');
+}
+
+// ─── RENDER PUBLICATIONS ─────────────────────
+function renderPubs(list, containerId) {
+  const c = document.getElementById(containerId);
+  if(!c) return;
+  c.innerHTML = list.map(p => `
+    <div class="pub-item">
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span class="pub-code ${p.type.toLowerCase()}">${p.id}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2)">${p.date}</span>
+          ${p.threat !== 'Standard' ? `<span style="font-size:9px;padding:2px 8px;border-radius:3px;background:var(--red-dim);color:var(--red2);font-family:'JetBrains Mono',monospace;border:1px solid rgba(192,57,43,0.3)">${p.threat}</span>` : ''}
+        </div>
+        <div class="pub-title">${p.title}</div>
+        <div style="font-size:13px;color:var(--text2);margin-top:4px;font-style:italic;line-height:1.5">${p.summary}</div>
+        <div class="pub-tags">
+          <span class="tag">${p.zone}</span>
+          <span class="tag">${p.type === 'NS' ? 'Note Stratégique' : p.type === 'DA' ? 'Dépêche Analytique' : p.type === 'RS' ? 'Rapport Spécial' : 'Flash Info'}</span>
+          <span style="font-size:10px;color:var(--text2);font-family:'JetBrains Mono',monospace;margin-left:4px"><i class="fas fa-eye" style="margin-right:3px"></i>${p.views.toLocaleString()}</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;margin-left:8px">
+        <div class="hbtn" title="Télécharger" style="width:32px;height:32px"><i class="fas fa-download" style="font-size:11px"></i></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterPubs() {
+  const type = document.getElementById('filterType')?.value || '';
+  const zone = document.getElementById('filterZone')?.value || '';
+  const filtered = publications.filter(p =>
+    (!type || p.type === type) && (!zone || p.zone === zone)
+  );
+  renderPubs(filtered, 'pub-full-list');
+}
+
+// initial render
+renderPubs(publications.slice(0,3), 'pub-list');
+renderPubs(publications, 'pub-full-list');
+
+// ─── ADMIN MODAL ─────────────────────────────
+function openAdmin() { document.getElementById('adminModal').classList.add('open'); }
+function closeAdmin() { document.getElementById('adminModal').classList.remove('open'); }
+document.getElementById('adminModal').addEventListener('click', e => {
+  if(e.target === e.currentTarget) closeAdmin();
+});
+
+function publishDoc() {
+  const title = document.getElementById('f-title').value.trim();
+  if(!title) { alert('Veuillez saisir un titre.'); return; }
+  const type = document.getElementById('f-type').value;
+  const zone = document.getElementById('f-zone').value;
+  const summary = document.getElementById('f-summary').value.trim() || 'Analyse en cours de diffusion.';
+  const threat = document.getElementById('f-threat').value;
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
+  const yr = now.getFullYear(); const mo = String(now.getMonth()+1).padStart(2,'0');
+  const seq = String(Math.floor(Math.random()*900)+100);
+  const id = `IGH-${type}-${yr}-${mo}-${seq}`;
+  const newPub = { id, type, zone, title, summary, views:0, date:dateStr, threat };
+  publications.unshift(newPub);
+  renderPubs(publications.slice(0,3), 'pub-list');
+  filterPubs();
+  closeAdmin();
+  showToast(title);
+  // reset
+  ['f-title','f-summary','f-author'].forEach(id => document.getElementById(id).value = '');
+}
+
+function showToast(title) {
+  const t = document.getElementById('toast');
+  t.querySelector('.toast-text').innerHTML = `<strong>Publication Diffusée</strong>${title.substring(0,60)}...`;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+// ─── MAP LAYERS ───────────────────────────────
+function toggleLayer(btn, layer) {
+  btn.classList.toggle('active');
+}
+
+// ─── SANDBOX ─────────────────────────────────
+let selectedScenario = null;
+let sandboxChartInst = null;
+
+const scenarios = {
+  gazoduc: {
+    title: 'Scénario : Coupure du Gazoduc Algérie-Europe',
+    effects: [
+      { ico:'⚡', col:'var(--red2)', bg:'rgba(192,57,43,0.1)', title:'Crise énergétique UE', desc:'Espagne et Italie en déficit gazier immédiat. Activation des réserves stratégiques.' },
+      { ico:'💰', col:'var(--gold)', bg:'var(--gold-dim)', title:'Hausse des prix Gaz +340%', desc:'Marchés spot TTF en forte tension. Effet domino sur l\'électricité européenne.' },
+      { ico:'🛢️', col:'#60a5fa', bg:'rgba(96,165,250,0.1)', title:'Alternative Qatar/Norvège', desc:'Activation des pipelines alternatifs. +6 à 8 semaines de délai logistique.' },
+      { ico:'🏦', col:'#c084fc', bg:'rgba(192,132,252,0.1)', title:'Pression diplomatique Alger', desc:'Washington et Bruxelles déclenchent des sanctions ciblées. Isolement diplomatique.' },
+    ],
+    data: [45, 78, 95, 87, 71, 62]
+  },
+  coup: {
+    title: 'Scénario : Coup d\'État en Tunisie',
+    effects: [
+      { ico:'🚨', col:'var(--red2)', bg:'rgba(192,57,43,0.1)', title:'Instabilité Méditerranée Sud', desc:'Réactivation des routes migratoires. Pression sur Lampedusa et Malte.' },
+      { ico:'🏦', col:'var(--gold)', bg:'var(--gold-dim)', title:'Fuite des capitaux', desc:'Effondrement du dinar tunisien. Gel des accords FMI.' },
+      { ico:'🇫🇷', col:'#60a5fa', bg:'rgba(96,165,250,0.1)', title:'Intervention diplomatique EU', desc:'Paris et Rome activent les canaux d\'urgence. Évacuation de ressortissants.' },
+    ],
+    data: [20, 55, 80, 70, 65, 58]
+  },
+  sahara: {
+    title: 'Scénario : Escalade Sahara Occidental',
+    effects: [
+      { ico:'⚔️', col:'var(--red2)', bg:'rgba(192,57,43,0.1)', title:'Confrontation militaire directe', desc:'Échanges de tirs dans le secteur de Guerguerat. Médiation ONU activée.' },
+      { ico:'🛢️', col:'var(--gold)', bg:'var(--gold-dim)', title:'Perturbation du Phosphate', desc:'OCP suspend les exportations. Marchés agricoles mondiaux sous tension.' },
+      { ico:'🇩🇿', col:'#60a5fa', bg:'rgba(96,165,250,0.1)', title:'Soutien algérien au Polisario', desc:'Alger fournit un appui logistique accru. Fermeture de l\'espace aérien bilatéral.' },
+    ],
+    data: [30, 65, 88, 76, 68, 55]
+  },
+  cedeao: {
+    title: 'Scénario : Implosion de la CEDEAO',
+    effects: [
+      { ico:'🌍', col:'var(--red2)', bg:'rgba(192,57,43,0.1)', title:'Recomposition de l\'espace ouest-africain', desc:'AES (Mali-Burkina-Niger) accélère son institutionnalisation avec appui russe.' },
+      { ico:'💱', col:'var(--gold)', bg:'var(--gold-dim)', title:'Fin du CFA harmonisé?', desc:'Débat sur la monnaie souveraine relancé. Incertitude économique majeure.' },
+      { ico:'🚢', col:'#60a5fa', bg:'rgba(96,165,250,0.1)', title:'Routes commerciales perturbées', desc:'Blocages douaniers. Hausse des coûts logistiques de +25% dans la sous-région.' },
+      { ico:'🔵', col:'#c084fc', bg:'rgba(192,132,252,0.1)', title:'Vide sécuritaire régional', desc:'Fin des mécanismes ECOMOG. Multiplication des zones grises incontrôlées.' },
+    ],
+    data: [15, 40, 72, 85, 78, 60]
+  }
+};
+
+function selectScenario(el, key) {
+  document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedScenario = key;
+  const s = scenarios[key];
+  document.getElementById('srTitle').textContent = s.title;
+  document.getElementById('srEffects').innerHTML = s.effects.map(e => `
+    <div class="effect-item">
+      <div class="effect-ico" style="background:${e.bg};color:${e.col}">${e.ico}</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">${e.title}</div>
+        <div style="font-size:12px;color:var(--text2)">${e.desc}</div>
+      </div>
+    </div>
+  `).join('');
+  const result = document.getElementById('sandboxResult');
+  result.classList.add('show');
+
+  if(sandboxChartInst) sandboxChartInst.destroy();
+  const ctx = document.getElementById('sandboxChart').getContext('2d');
+  sandboxChartInst = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels:['J0','J7','J14','J21','J30','J60'],
+      datasets:[{
+        label:'Indice d\'instabilité',
+        data: s.data,
+        borderColor: '#e74c3c',
+        backgroundColor:'rgba(192,57,43,0.1)',
+        tension:0.4, fill:true, pointBackgroundColor:'#e74c3c'
+      }]
+    },
+    options: { responsive:true, plugins:{legend:{labels:{color:'#7a91b8',font:{family:'JetBrains Mono',size:10}}}},
+      scales:{y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#7a91b8',font:{family:'JetBrains Mono',size:10}},min:0,max:100},
+              x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#7a91b8',font:{family:'JetBrains Mono',size:10}}}}
+    }
+  });
+}
+
+// ─── CHARTS ───────────────────────────────────
+const chartDefaults = {
+  color: '#7a91b8',
+  gridColor: 'rgba(255,255,255,0.04)',
+  font: { family:'JetBrains Mono', size:10 }
+};
+
+function mkScales(yMax) {
+  return {
+    y: { max:yMax, min:0, grid:{color:chartDefaults.gridColor}, ticks:{color:chartDefaults.color, font:chartDefaults.font} },
+    x: { grid:{color:chartDefaults.gridColor}, ticks:{color:chartDefaults.color, font:chartDefaults.font} }
+  };
+}
+
+// Tension chart
+new Chart(document.getElementById('tensionChart'), {
+  type:'line',
+  data:{
+    labels:['Oct','Nov','Déc','Jan','Fév','Mar'],
+    datasets:[
+      {label:'Maroc',data:[6.2,6.5,7.1,7.8,8.1,8.4],borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.08)',tension:0.4,fill:true,pointRadius:3},
+      {label:'Algérie',data:[5.8,6.2,6.8,7.2,7.6,7.9],borderColor:chartDefaults.color,backgroundColor:'rgba(122,145,184,0.05)',tension:0.4,fill:true,pointRadius:3},
+      {label:'Sahel',data:[7.5,8.0,8.2,8.5,8.7,9.1],borderColor:'#f97316',backgroundColor:'rgba(249,115,22,0.08)',tension:0.4,fill:true,pointRadius:3},
+    ]
+  },
+  options:{responsive:true,plugins:{legend:{labels:{color:chartDefaults.color,font:{family:'JetBrains Mono',size:9}}}},scales:mkScales(10)}
+});
+
+// Crisis donut
+new Chart(document.getElementById('crisisChart'), {
+  type:'doughnut',
+  data:{
+    labels:['Sécurité','Politique','Économique','Hybride'],
+    datasets:[{data:[38,25,20,17],backgroundColor:['rgba(192,57,43,0.8)','rgba(201,162,39,0.8)','rgba(96,165,250,0.8)','rgba(192,132,252,0.8)'],borderWidth:0,hoverOffset:6}]
+  },
+  options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:chartDefaults.color,font:{family:'JetBrains Mono',size:9},padding:8}}}}
+});
+
+// Maghreb chart
+new Chart(document.getElementById('maghrebChart'), {
+  type:'line',
+  data:{
+    labels:['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aug','Sep','Oct','Nov','Déc'],
+    datasets:[
+      {label:'Maroc',data:[5.8,6.0,6.3,6.7,7.0,7.2,7.5,7.8,8.0,8.2,8.3,8.4],borderColor:'#ef4444',tension:0.4,pointRadius:2},
+      {label:'Algérie',data:[5.5,5.7,6.1,6.4,6.7,6.9,7.0,7.3,7.5,7.7,7.8,7.9],borderColor:'#f59e0b',tension:0.4,pointRadius:2},
+      {label:'Tunisie',data:[4.2,4.5,4.3,4.6,4.8,4.7,5.0,5.1,4.9,5.2,5.3,5.1],borderColor:'#4ade80',tension:0.4,pointRadius:2},
+      {label:'Libye',data:[5.9,6.1,5.8,6.2,6.3,6.0,6.4,6.2,6.5,6.3,6.2,6.1],borderColor:'#60a5fa',tension:0.4,pointRadius:2},
+    ]
+  },
+  options:{responsive:true,plugins:{legend:{labels:{color:chartDefaults.color,font:{family:'JetBrains Mono',size:9}}}},scales:mkScales(10)}
+});
+
+// Sahel bar
+new Chart(document.getElementById('sahelChart'), {
+  type:'bar',
+  data:{
+    labels:['Mali','Burkina','Niger','Tchad'],
+    datasets:[
+      {label:'Attaques 2024',data:[450,380,290,180],backgroundColor:'rgba(239,68,68,0.5)',borderColor:'rgba(239,68,68,0.8)',borderWidth:1},
+      {label:'Attaques 2025',data:[520,430,340,215],backgroundColor:'rgba(249,115,22,0.5)',borderColor:'rgba(249,115,22,0.8)',borderWidth:1},
+      {label:'Attaques 2026 (proj.)',data:[390,365,280,195],backgroundColor:'rgba(201,162,39,0.4)',borderColor:'rgba(201,162,39,0.8)',borderWidth:1},
+    ]
+  },
+  options:{responsive:true,plugins:{legend:{labels:{color:chartDefaults.color,font:{family:'JetBrains Mono',size:9}}}},scales:mkScales(600)}
+});
+
+// Security radar
+new Chart(document.getElementById('securityChart'), {
+  type:'radar',
+  data:{
+    labels:['Terrorisme','Coup d\'État','Piraterie','Cybermenace','Migration','Guerre Cognitive'],
+    datasets:[
+      {label:'Niveau Actuel',data:[88,62,45,55,71,67],fill:true,backgroundColor:'rgba(192,57,43,0.15)',borderColor:'var(--red2)',pointBackgroundColor:'var(--red2)'},
+      {label:'Prévision 30J',data:[92,68,42,60,73,78],fill:true,backgroundColor:'rgba(201,162,39,0.1)',borderColor:'var(--gold)',pointBackgroundColor:'var(--gold)'},
+    ]
+  },
+  options:{responsive:true,plugins:{legend:{labels:{color:chartDefaults.color,font:{family:'JetBrains Mono',size:9}}}},
+    scales:{r:{angleLines:{color:chartDefaults.gridColor},grid:{color:chartDefaults.gridColor},ticks:{color:chartDefaults.color,font:{family:'JetBrains Mono',size:8},backdropColor:'transparent'},pointLabels:{color:chartDefaults.color,font:{family:'JetBrains Mono',size:9}}}}
+  }
+});
+
+// Econ chart
+new Chart(document.getElementById('econChart'), {
+  type:'bar',
+  data:{
+    labels:['Chine','EAU','France','USA','Turquie','Arabie Saoudite','Maroc (invest.)'],
+    datasets:[{
+      label:'Investissements en Afrique (Mds USD)',
+      data:[82,45,38,31,18,22,8.5],
+      backgroundColor:['rgba(96,165,250,0.7)','rgba(192,57,43,0.7)','rgba(96,165,250,0.5)','rgba(96,165,250,0.5)','rgba(201,162,39,0.7)','rgba(74,222,128,0.7)','rgba(201,162,39,0.5)'],
+      borderWidth:0
+    }]
+  },
+  options:{responsive:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:chartDefaults.gridColor},ticks:{color:chartDefaults.color,font:{family:'JetBrains Mono',size:9}}},y:{grid:{display:false},ticks:{color:chartDefaults.color,font:{family:'JetBrains Mono',size:9}}}}}
+});
+
+// Cog chart
+new Chart(document.getElementById('cogChart'), {
+  type:'line',
+  data:{
+    labels:['Jan','Fév','Mar','Avr','Mai','Jun'],
+    datasets:[
+      {label:'EAU → Maroc',data:[12,18,25,32,38,44],borderColor:'var(--red2)',tension:0.4,fill:false,pointRadius:3},
+      {label:'Russie → Sahel',data:[30,45,52,61,72,85],borderColor:'var(--gold)',tension:0.4,fill:false,pointRadius:3},
+      {label:'Algérie → Sahara',data:[8,12,18,22,28,31],borderColor:'#60a5fa',tension:0.4,fill:false,pointRadius:3},
+    ]
+  },
+  options:{responsive:true,plugins:{legend:{labels:{color:chartDefaults.color,font:{family:'JetBrains Mono',size:9}}}},scales:mkScales(100)}
+});
+
+// ─── GEO MAP CANVAS ───────────────────────────
+const geoCanvas = document.getElementById('geoCanvas');
+if(geoCanvas) {
+  const ctx = geoCanvas.getContext('2d');
+
+  // Country definitions: pts = border polygon as [x%,y%] of canvas
+  const COUNTRIES = [
+    // ── EUROPE (top strip) ──
+    { name:'ESPAGNE',   fill:'rgba(12,22,45,0.9)',  stroke:'rgba(150,170,220,0.3)', lx:0.21,ly:0.04,
+      pts:[[0.08,0],[0.36,0],[0.36,0.065],[0.22,0.07],[0.10,0.065]] },
+    { name:'FRANCE',    fill:'rgba(12,22,45,0.9)',  stroke:'rgba(150,170,220,0.3)', lx:0.43,ly:0.04,
+      pts:[[0.36,0],[0.54,0],[0.54,0.065],[0.36,0.065]] },
+    { name:'ITALIE',    fill:'rgba(12,22,45,0.9)',  stroke:'rgba(150,170,220,0.3)', lx:0.575,ly:0.04,
+      pts:[[0.54,0],[0.64,0],[0.64,0.065],[0.54,0.065]] },
+    // ── NORTH AFRICA ──
+    { name:'MAROC',     fill:'rgba(18,48,90,0.88)', stroke:'rgba(201,162,39,0.65)', lx:0.175,ly:0.175,
+      pts:[[0.08,0.065],[0.22,0.07],[0.24,0.12],[0.22,0.20],[0.18,0.26],[0.12,0.28],[0.08,0.24],[0.06,0.16],[0.07,0.10]] },
+    { name:'ALGÉRIE',   fill:'rgba(15,40,80,0.88)', stroke:'rgba(201,162,39,0.55)', lx:0.315,ly:0.175,
+      pts:[[0.22,0.07],[0.40,0.065],[0.44,0.10],[0.42,0.20],[0.38,0.28],[0.28,0.30],[0.22,0.28],[0.22,0.20],[0.24,0.12]] },
+    { name:'TUNISIE',   fill:'rgba(14,38,75,0.88)', stroke:'rgba(74,222,128,0.55)', lx:0.475,ly:0.135,
+      pts:[[0.44,0.065],[0.50,0.062],[0.52,0.10],[0.51,0.18],[0.48,0.20],[0.46,0.16],[0.42,0.20],[0.44,0.10]] },
+    { name:'LIBYE',     fill:'rgba(14,36,72,0.88)', stroke:'rgba(96,165,250,0.55)', lx:0.605,ly:0.175,
+      pts:[[0.50,0.062],[0.68,0.058],[0.72,0.10],[0.72,0.20],[0.66,0.28],[0.56,0.30],[0.48,0.28],[0.48,0.20],[0.51,0.18],[0.52,0.10]] },
+    { name:'ÉGYPTE',    fill:'rgba(14,34,68,0.88)', stroke:'rgba(201,162,39,0.45)', lx:0.765,ly:0.175,
+      pts:[[0.68,0.058],[0.84,0.055],[0.86,0.10],[0.84,0.20],[0.78,0.24],[0.72,0.22],[0.72,0.20],[0.72,0.10]] },
+    // ── SAHEL ──
+    { name:'MAURITANIE',fill:'rgba(16,36,58,0.80)', stroke:'rgba(96,165,250,0.35)', lx:0.115,ly:0.36,
+      pts:[[0.04,0.28],[0.12,0.28],[0.16,0.34],[0.14,0.42],[0.08,0.46],[0.04,0.44],[0.04,0.30]] },
+    { name:'MALI',      fill:'rgba(70,15,15,0.82)', stroke:'rgba(239,68,68,0.70)',  lx:0.265,ly:0.375,
+      pts:[[0.12,0.28],[0.22,0.28],[0.28,0.30],[0.32,0.36],[0.30,0.44],[0.24,0.48],[0.18,0.46],[0.14,0.42],[0.16,0.34]] },
+    { name:'BURKINA',   fill:'rgba(75,28,8,0.82)',  stroke:'rgba(249,115,22,0.60)', lx:0.255,ly:0.485,
+      pts:[[0.24,0.48],[0.30,0.44],[0.34,0.46],[0.34,0.52],[0.28,0.55],[0.22,0.54],[0.20,0.50]] },
+    { name:'NIGER',     fill:'rgba(65,45,8,0.82)',  stroke:'rgba(245,158,11,0.60)', lx:0.42,ly:0.39,
+      pts:[[0.32,0.30],[0.44,0.26],[0.52,0.28],[0.56,0.34],[0.52,0.44],[0.46,0.48],[0.34,0.46],[0.30,0.44],[0.32,0.36]] },
+    { name:'TCHAD',     fill:'rgba(50,38,18,0.82)', stroke:'rgba(201,162,39,0.45)', lx:0.565,ly:0.405,
+      pts:[[0.52,0.28],[0.64,0.26],[0.68,0.32],[0.66,0.44],[0.60,0.48],[0.52,0.48],[0.46,0.48],[0.52,0.44],[0.56,0.34]] },
+    { name:'SOUDAN',    fill:'rgba(42,32,22,0.80)', stroke:'rgba(201,162,39,0.35)', lx:0.72,ly:0.38,
+      pts:[[0.66,0.26],[0.78,0.24],[0.82,0.30],[0.80,0.44],[0.72,0.48],[0.66,0.44],[0.68,0.32]] },
+    // ── WEST AFRICA ──
+    { name:'SÉNÉGAL',  fill:'rgba(18,42,28,0.78)', stroke:'rgba(74,222,128,0.35)', lx:0.085,ly:0.50,
+      pts:[[0.04,0.44],[0.08,0.46],[0.10,0.50],[0.08,0.54],[0.04,0.52],[0.03,0.46]] },
+    { name:'GHANA',     fill:'rgba(18,42,25,0.78)', stroke:'rgba(74,222,128,0.35)', lx:0.21,ly:0.545,
+      pts:[[0.18,0.52],[0.22,0.52],[0.22,0.58],[0.18,0.60],[0.16,0.56]] },
+    { name:'NIGERIA',   fill:'rgba(48,56,18,0.82)', stroke:'rgba(74,222,128,0.50)', lx:0.335,ly:0.565,
+      pts:[[0.28,0.55],[0.34,0.52],[0.38,0.54],[0.40,0.60],[0.36,0.64],[0.28,0.64],[0.26,0.58],[0.24,0.54]] },
+    { name:'CAMEROUN',  fill:'rgba(30,40,18,0.78)', stroke:'rgba(74,222,128,0.35)', lx:0.425,ly:0.555,
+      pts:[[0.40,0.52],[0.46,0.52],[0.46,0.62],[0.40,0.64],[0.36,0.64],[0.40,0.60],[0.38,0.54]] },
+    // ── EAST AFRICA ──
+    { name:'ÉTHIOPIE', fill:'rgba(38,28,18,0.80)', stroke:'rgba(201,162,39,0.40)', lx:0.765,ly:0.535,
+      pts:[[0.72,0.48],[0.82,0.44],[0.88,0.48],[0.86,0.58],[0.78,0.62],[0.70,0.58],[0.68,0.52],[0.72,0.50]] },
+    { name:'SOMALIE',   fill:'rgba(28,38,18,0.78)', stroke:'rgba(96,165,250,0.40)', lx:0.895,ly:0.545,
+      pts:[[0.88,0.48],[0.96,0.46],[0.97,0.56],[0.90,0.64],[0.84,0.60],[0.86,0.58]] },
+    { name:'KENYA',     fill:'rgba(28,40,20,0.78)', stroke:'rgba(74,222,128,0.35)', lx:0.775,ly:0.62,
+      pts:[[0.72,0.60],[0.80,0.58],[0.84,0.62],[0.80,0.68],[0.72,0.68],[0.70,0.62]] },
+    // ── CENTRAL AFRICA ──
+    { name:'RDC',       fill:'rgba(55,18,48,0.82)', stroke:'rgba(192,132,252,0.60)',lx:0.585,ly:0.635,
+      pts:[[0.50,0.54],[0.60,0.50],[0.68,0.52],[0.70,0.64],[0.64,0.70],[0.52,0.70],[0.46,0.64],[0.48,0.56]] },
+    { name:'TANZANIE',  fill:'rgba(20,38,22,0.78)', stroke:'rgba(74,222,128,0.35)', lx:0.72,ly:0.70,
+      pts:[[0.70,0.64],[0.80,0.68],[0.78,0.76],[0.70,0.76],[0.64,0.72],[0.64,0.70]] },
+    // ── ARABIAN PENINSULA ──
+    { name:'ARABIE S.', fill:'rgba(18,32,52,0.85)', stroke:'rgba(74,222,128,0.40)', lx:0.895,ly:0.255,
+      pts:[[0.84,0.10],[0.98,0.10],[0.99,0.22],[0.94,0.30],[0.86,0.32],[0.80,0.28],[0.82,0.20],[0.86,0.15]] },
+    { name:'ÉAU',       fill:'rgba(18,32,60,0.85)', stroke:'rgba(192,57,43,0.50)',  lx:0.955,ly:0.195,
+      pts:[[0.94,0.16],[0.99,0.16],[0.99,0.22],[0.94,0.22]] },
+    { name:'YÉMEN',     fill:'rgba(18,30,50,0.85)', stroke:'rgba(201,162,39,0.35)', lx:0.91,ly:0.325,
+      pts:[[0.86,0.30],[0.99,0.28],[0.99,0.34],[0.90,0.36],[0.82,0.34],[0.82,0.30]] },
+    // ── SOUTH AFRICA ──
+    { name:'AFRIQUE DU SUD', fill:'rgba(14,30,50,0.82)', stroke:'rgba(201,162,39,0.35)', lx:0.59,ly:0.88,
+      pts:[[0.46,0.78],[0.60,0.76],[0.70,0.80],[0.65,0.90],[0.52,0.92],[0.44,0.86]] },
+    { name:'MOZAMBIQUE',fill:'rgba(14,32,50,0.78)', stroke:'rgba(74,222,128,0.30)', lx:0.695,ly:0.78,
+      pts:[[0.66,0.70],[0.74,0.68],[0.76,0.78],[0.70,0.86],[0.62,0.84],[0.60,0.76]] },
+    { name:'ANGOLA',    fill:'rgba(14,32,52,0.78)', stroke:'rgba(74,222,128,0.30)', lx:0.50,ly:0.72,
+      pts:[[0.44,0.64],[0.52,0.62],[0.58,0.66],[0.58,0.76],[0.50,0.78],[0.44,0.74]] },
+    { name:'ZAMBIE',    fill:'rgba(14,32,50,0.78)', stroke:'rgba(74,222,128,0.30)', lx:0.625,ly:0.715,
+      pts:[[0.58,0.66],[0.66,0.66],[0.70,0.70],[0.66,0.76],[0.58,0.76],[0.56,0.70]] },
+    // ── MADAGASCAR ──
+    { name:'MADAGASCAR',fill:'rgba(14,34,55,0.82)', stroke:'rgba(96,165,250,0.40)', lx:0.855,ly:0.74,
+      pts:[[0.84,0.66],[0.88,0.66],[0.90,0.74],[0.86,0.82],[0.82,0.80],[0.82,0.72]] },
+  ];
+
+  function drawPolygon(pts, fill, stroke, lw, W, H) {
+    if(!pts || pts.length<2) return;
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0]*W, pts[0][1]*H);
+    for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0]*W, pts[i][1]*H);
+    ctx.closePath();
+    ctx.fillStyle = fill; ctx.fill();
+    ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke();
+  }
+
+  function drawMap() {
+    const W = geoCanvas.parentElement.offsetWidth;
+    const H = geoCanvas.parentElement.offsetHeight;
+    geoCanvas.width = W; geoCanvas.height = H;
+
+    // ── OCEAN BACKGROUND ──
+    const bg = ctx.createLinearGradient(0,0,W,H);
+    bg.addColorStop(0,'#030a16'); bg.addColorStop(1,'#060e1e');
+    ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+    // Ocean texture: subtle grid
+    ctx.strokeStyle='rgba(0,100,200,0.04)'; ctx.lineWidth=0.5;
+    for(let x=0;x<W;x+=30){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<H;y+=30){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+    // ── DRAW ALL COUNTRIES ──
+    COUNTRIES.forEach(c => {
+      drawPolygon(c.pts, c.fill, c.stroke, 1.2, W, H);
+    });
+
+    // ── BORDER DETAILS (inner key borders) ──
+    ctx.setLineDash([2,3]); ctx.lineWidth=0.6;
+    const borders = [
+      [[0.22,0.28],[0.28,0.30]], // Maroc-Algerie (south)
+      [[0.32,0.30],[0.32,0.36]], // Algerie-Niger
+      [[0.66,0.26],[0.64,0.26]], // Tchad-Niger
+      [[0.52,0.44],[0.52,0.48]], // Niger-Tchad (south)
+    ];
+    ctx.strokeStyle='rgba(201,162,39,0.2)';
+    borders.forEach(b => {
+      ctx.beginPath(); ctx.moveTo(b[0][0]*W,b[0][1]*H); ctx.lineTo(b[1][0]*W,b[1][1]*H); ctx.stroke();
+    });
+    ctx.setLineDash([]);
+
+    // ── COUNTRY LABELS ──
+    COUNTRIES.forEach(c => {
+      if(!c.name || !c.lx) return;
+      const fs = Math.max(7, Math.min(11, W*0.0075));
+      ctx.font = `bold ${fs}px "JetBrains Mono",monospace`;
+      ctx.textAlign='center';
+      // Shadow
+      ctx.fillStyle='rgba(0,0,0,0.6)';
+      ctx.fillText(c.name, c.lx*W+1, c.ly*H+1);
+      // Text
+      ctx.fillStyle='rgba(255,255,255,0.55)';
+      ctx.fillText(c.name, c.lx*W, c.ly*H);
+    });
+
+    // ── GEOGRAPHIC LINES ──
+    // Tropic of Cancer (~23.5°N → ~27% of map height)
+    ctx.setLineDash([6,5]); ctx.lineWidth=1;
+    ctx.strokeStyle='rgba(201,162,39,0.25)';
+    ctx.beginPath(); ctx.moveTo(0,0.22*H); ctx.lineTo(W,0.22*H); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(201,162,39,0.30)'; ctx.font='7px JetBrains Mono,monospace';
+    ctx.textAlign='left'; ctx.fillText('TROPIQUE DU CANCER', 4, 0.215*H);
+
+    // Equator (~0° → ~64% of map height)
+    ctx.setLineDash([6,5]); ctx.lineWidth=1;
+    ctx.strokeStyle='rgba(96,165,250,0.25)';
+    ctx.beginPath(); ctx.moveTo(0,0.66*H); ctx.lineTo(W,0.66*H); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(96,165,250,0.30)'; ctx.font='7px JetBrains Mono,monospace';
+    ctx.fillText('ÉQUATEUR', 4, 0.655*H);
+
+    // ── SEA LABELS ──
+    ctx.fillStyle='rgba(0,160,220,0.22)'; ctx.font='bold 9px JetBrains Mono,monospace';
+    ctx.textAlign='center';
+    ctx.fillText('MER MÉDITERRANÉE', 0.40*W, 0.075*H);
+    ctx.fillText('OCÉAN ATLANTIQUE', 0.015*W, 0.55*H);
+    ctx.fillStyle='rgba(0,160,220,0.18)'; ctx.font='bold 8px JetBrains Mono,monospace';
+    ctx.fillText('MER ROUGE', 0.84*W, 0.36*H);
+    ctx.fillText('OCÉAN INDIEN', 0.92*W, 0.72*H);
+
+    // ── SAHEL ZONE BAND ──
+    ctx.fillStyle='rgba(239,68,68,0.04)';
+    ctx.fillRect(0.04*W, 0.28*H, 0.82*W, 0.20*H);
+    ctx.setLineDash([8,4]); ctx.strokeStyle='rgba(239,68,68,0.18)'; ctx.lineWidth=0.8;
+    ctx.beginPath(); ctx.moveTo(0.04*W,0.28*H); ctx.lineTo(0.86*W,0.28*H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0.04*W,0.48*H); ctx.lineTo(0.86*W,0.48*H); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(239,68,68,0.22)'; ctx.font='bold 8px JetBrains Mono,monospace';
+    ctx.textAlign='left'; ctx.fillText('▶ ZONE SAHEL', 0.04*W, 0.275*H);
+
+    // ── SCAN LINE ──
+    const scanY=((Date.now()/55)%H);
+    const sg=ctx.createLinearGradient(0,scanY-50,0,scanY+5);
+    sg.addColorStop(0,'transparent'); sg.addColorStop(1,'rgba(0,212,255,0.035)');
+    ctx.fillStyle=sg; ctx.fillRect(0,scanY-50,W,55);
+
+    requestAnimationFrame(drawMap);
+  }
+  drawMap();
+}
+</script>
+</body>
+</html>
