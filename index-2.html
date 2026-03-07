@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IGH — Institut Géopolitique Horizons | Centre de Commandement</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js">
+// KILL SWITCH
+function killSwitch(){
+  if(confirm('⚠ EFFACER LA SESSION ?')){
+    document.body.innerHTML='<div style="background:#000;color:#333;font-family:monospace;display:flex;align-items:center;justify-content:center;height:100vh;font-size:13px;letter-spacing:3px;">PORTAIL D\'ACCÈS — MAINTENANCE EN COURS</div>';
+    history.pushState(null,null,'/maintenance');
+  }
+}
+// EXECUTIVE AUDIO BRIEF (Web Speech API)
+function readBriefing(btn){
+  if(!window.speechSynthesis){flash('Synthèse vocale non disponible');return;}
+  if(speechSynthesis.speaking){speechSynthesis.cancel();btn.classList.remove('speaking');btn.innerHTML='<i class="fas fa-volume-up"></i> ÉCOUTER BRIEFING';return;}
+  const text="Briefing IGH du 7 Mars 2026. Alerte niveau rouge : Opération Hedgehog confirmée. Déploiement OTAN imminent dans le Sahel. Mouvement Wagner documenté à la frontière Mali-Mauritanie. Tensions Maroc-Algérie en hausse de 0.4 points. Actions recommandées : activer sources Niger et Burkina Faso. Préparer note Wagner urgence. Fin du briefing.";
+  const utt=new SpeechSynthesisUtterance(text);
+  utt.lang='fr-FR';utt.rate=0.92;utt.pitch=0.95;
+  const voices=speechSynthesis.getVoices();
+  const fr=voices.find(v=>v.lang.startsWith('fr'));
+  if(fr)utt.voice=fr;
+  utt.onstart=()=>{btn.classList.add('speaking');btn.innerHTML='<i class="fas fa-stop"></i> ARRÊTER';};
+  utt.onend=()=>{btn.classList.remove('speaking');btn.innerHTML='<i class="fas fa-volume-up"></i> ÉCOUTER BRIEFING';};
+  speechSynthesis.speak(utt);
+}
+</script>
+<style>
+:root{
+  --navy:#0a0f1e;--navy2:#0d1628;
+  --gold:#c9a227;--gold2:#a07c1a;--gold3:rgba(201,162,39,.12);--gold4:rgba(201,162,39,.05);
+  --red:#c0392b;--glass:rgba(13,21,40,.78);--glassd:rgba(8,12,24,.92);
+  --border:rgba(201,162,39,.16);--border2:rgba(201,162,39,.4);
+  --txt:#d4cfc4;--dim:#56607a;--dim2:#94a3b8;
+  --grn:#10b981;--blu:#3b82f6;--pur:#8b5cf6;--org:#f97316;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--navy);color:var(--txt);font-family:"Space Grotesk",sans-serif;font-size:14px;overflow-x:hidden;}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse 900px 700px at 5% 15%,rgba(201,162,39,.035) 0%,transparent 65%),radial-gradient(ellipse 700px 500px at 95% 85%,rgba(59,130,246,.025) 0%,transparent 65%);pointer-events:none;z-index:0;}
+.geo-grid{position:fixed;inset:0;background-image:linear-gradient(rgba(201,162,39,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(201,162,39,.02) 1px,transparent 1px);background-size:50px 50px;pointer-events:none;z-index:0;}
+.crn{position:fixed;width:55px;height:55px;z-index:999;pointer-events:none;}
+.c-tl{top:0;left:0;border-top:2px solid var(--gold);border-left:2px solid var(--gold);}
+.c-tr{top:0;right:0;border-top:2px solid var(--gold);border-right:2px solid var(--gold);}
+.c-bl{bottom:0;left:0;border-bottom:2px solid var(--gold);border-left:2px solid var(--gold);}
+.c-br{bottom:0;right:0;border-bottom:2px solid var(--gold);border-right:2px solid var(--gold);}
+/* TICKER */
+.ticker-wrap{background:linear-gradient(90deg,rgba(192,57,43,.95),rgba(192,57,43,.8));border-bottom:1px solid rgba(192,57,43,.6);height:28px;display:flex;align-items:center;overflow:hidden;position:relative;z-index:800;}
+.t-lbl{background:var(--red);height:100%;display:flex;align-items:center;padding:0 22px 0 10px;font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:3px;color:#fff;white-space:nowrap;flex-shrink:0;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 50%,calc(100% - 8px) 100%,0 100%);}
+.t-belt{display:flex;animation:belt 38s linear infinite;white-space:nowrap;}
+.t-belt span{padding:0 44px;font-family:"JetBrains Mono",monospace;font-size:10px;color:rgba(255,255,255,.92);letter-spacing:.8px;}
+.t-belt span em{color:#ffd700;font-style:normal;margin-right:8px;}
+@keyframes belt{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+/* HEADER */
+header{position:sticky;top:28px;z-index:700;background:rgba(8,12,24,.97);border-bottom:1px solid var(--border);backdrop-filter:blur(28px);}
+.hdr{max-width:1800px;margin:0 auto;padding:0 2rem;height:66px;display:flex;align-items:center;justify-content:space-between;}
+.logo{display:flex;align-items:center;gap:14px;}
+.logo-ico{width:44px;height:44px;background:linear-gradient(135deg,var(--gold2),var(--gold));display:flex;align-items:center;justify-content:center;flex-shrink:0;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);}
+.logo-ico i{color:var(--navy);font-size:19px;}
+.logo h1{font-family:"Playfair Display",serif;font-size:18px;font-weight:700;color:#fff;letter-spacing:2px;line-height:1.1;}
+.logo p{font-family:"JetBrains Mono",monospace;font-size:8px;color:var(--gold);letter-spacing:4px;text-transform:uppercase;margin-top:2px;}
+.hdr-mid{display:flex;align-items:center;gap:10px;}
+.pill{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.45);border:1px solid var(--border);padding:5px 15px;font-family:"JetBrains Mono",monospace;font-size:10px;clip-path:polygon(7px 0,100% 0,calc(100% - 7px) 100%,0 100%);}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.d-r{background:var(--red);box-shadow:0 0 8px var(--red);animation:blink .9s infinite;}
+.d-g{background:var(--grn);box-shadow:0 0 8px var(--grn);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
+#clk{font-family:"JetBrains Mono",monospace;font-size:16px;color:var(--gold);letter-spacing:3px;font-weight:500;}
+.hdr-right{display:flex;align-items:center;gap:7px;}
+.ibtn{width:36px;height:36px;background:transparent;border:1px solid var(--border);color:var(--dim2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .2s;position:relative;}
+.ibtn:hover{border-color:var(--border2);color:var(--gold);background:var(--gold4);}
+.ibtn .nb2{position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;background:var(--red);animation:blink .8s infinite;}
+.ava{width:36px;height:36px;background:linear-gradient(135deg,var(--gold2),var(--gold));display:flex;align-items:center;justify-content:center;font-family:"Playfair Display",serif;font-size:11px;font-weight:700;color:var(--navy);cursor:pointer;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);}
+/* NAV */
+nav{position:sticky;top:94px;z-index:600;background:rgba(8,12,24,.94);border-bottom:1px solid var(--border);backdrop-filter:blur(22px);}
+.nav-inner{max-width:1800px;margin:0 auto;padding:0 2rem;display:flex;overflow-x:auto;scrollbar-width:none;}
+.nav-inner::-webkit-scrollbar{display:none;}
+.nb{background:none;border:none;border-bottom:2px solid transparent;color:var(--dim2);font-family:"Space Grotesk",sans-serif;font-size:11px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;padding:14px 17px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:7px;transition:all .25s;}
+.nb i{font-size:11px;}
+.nb:hover{color:var(--txt);}
+.nb.active{color:var(--gold);border-bottom-color:var(--gold);background:linear-gradient(to bottom,transparent,var(--gold4));}
+.nc{background:var(--red);color:#fff;font-size:8px;padding:1px 5px;border-radius:8px;font-family:"JetBrains Mono",monospace;}
+.bc{background:linear-gradient(90deg,rgba(201,162,39,.07),transparent 55%);border-bottom:1px solid rgba(201,162,39,.05);padding:6px 2rem;font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;}
+.bc .cur{color:var(--gold);}
+/* MAIN */
+main{max-width:1800px;margin:0 auto;padding:26px 2rem 70px;position:relative;z-index:1;}
+/* PANELS */
+.pnl{background:var(--glass);border:1px solid var(--border);backdrop-filter:blur(14px);position:relative;overflow:hidden;}
+.pnl::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.28;}
+.ph{padding:11px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(201,162,39,.022);}
+.pt{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;gap:9px;}
+.pb{padding:18px;}
+/* TABS */
+.tab{display:none;animation:fU .4s ease;}
+.tab.active{display:block;}
+@keyframes fU{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.stl{font-family:"Playfair Display",serif;font-size:27px;font-weight:700;color:#fff;margin-bottom:5px;}
+.ssb{font-size:13px;color:var(--dim2);font-style:italic;margin-bottom:24px;}
+/* GRIDS */
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
+.g12{display:grid;grid-template-columns:1fr 2fr;gap:20px;}
+.g13{display:grid;grid-template-columns:1fr 3fr;gap:20px;}
+/* KPI */
+.kpi{background:var(--glassd);border:1px solid var(--border);padding:22px 18px;text-align:center;position:relative;overflow:hidden;transition:all .3s;cursor:default;}
+.kpi:hover{border-color:var(--border2);transform:translateY(-4px);box-shadow:0 14px 45px rgba(0,0,0,.55);}
+.kpi::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;}
+.k-g::after{background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.k-r::after{background:linear-gradient(90deg,transparent,var(--red),transparent);}
+.k-b::after{background:linear-gradient(90deg,transparent,var(--blu),transparent);}
+.k-v::after{background:linear-gradient(90deg,transparent,var(--grn),transparent);}
+.kn{font-family:"Playfair Display",serif;font-size:44px;font-weight:700;line-height:1;margin-bottom:5px;}
+.kl{font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:2px;color:var(--dim2);text-transform:uppercase;}
+.kd{font-family:"JetBrains Mono",monospace;font-size:9px;margin-top:6px;}
+/* ALERTS */
+.al-r{background:linear-gradient(135deg,rgba(192,57,43,.13),rgba(192,57,43,.06));border:1px solid rgba(192,57,43,.45);border-left:3px solid var(--red);padding:17px 20px;cursor:pointer;transition:all .25s;}
+.al-r:hover{background:linear-gradient(135deg,rgba(192,57,43,.19),rgba(192,57,43,.09));}
+.al-g{background:linear-gradient(135deg,rgba(201,162,39,.11),rgba(201,162,39,.05));border:1px solid rgba(201,162,39,.38);border-left:3px solid var(--gold);padding:17px 20px;}
+.abg{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:9px;letter-spacing:3px;padding:3px 9px;}
+/* RUBRIC */
+.ri{border-left:2px solid transparent;padding:10px 14px;cursor:pointer;transition:all .3s;}
+.ri:hover,.ri.open{border-left-color:var(--gold);background:rgba(201,162,39,.05);}
+.rh{display:flex;align-items:center;justify-content:space-between;font-family:"Space Grotesk",sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--txt);}
+.rs-sub{max-height:0;overflow:hidden;transition:max-height .4s ease;}
+.rs-sub.open{max-height:400px;}
+.rs-sub a{display:block;padding:5px 0 5px 26px;font-size:12px;color:var(--dim2);text-decoration:none;font-style:italic;transition:color .2s;border-bottom:1px solid rgba(255,255,255,.03);}
+.rs-sub a:hover{color:var(--gold);}
+/* PUB ITEMS */
+.pi{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .2s;cursor:pointer;}
+.pi:last-child{border-bottom:none;}
+.pi:hover{background:rgba(201,162,39,.04);}
+.pi:hover .ptl{color:var(--gold);}
+.pd{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.pc{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--dim);min-width:125px;flex-shrink:0;}
+.ptl{flex:1;font-size:14px;color:var(--txt);transition:color .2s;}
+.ptag{font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border:1px solid;flex-shrink:0;}
+.t-m{color:var(--blu);border-color:rgba(59,130,246,.4);background:rgba(59,130,246,.08);}
+.t-s{color:#ef4444;border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.08);}
+.t-o{color:var(--pur);border-color:rgba(139,92,246,.4);background:rgba(139,92,246,.08);}
+.t-k{color:var(--org);border-color:rgba(249,115,22,.4);background:rgba(249,115,22,.08);}
+.t-e{color:var(--gold);border-color:rgba(201,162,39,.4);background:rgba(201,162,39,.08);}
+.t-a{color:var(--grn);border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.08);}
+.ptm{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--dim);flex-shrink:0;}
+/* THREAT */
+.tr{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.tr:last-child{border-bottom:none;}
+.tn{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:1px;width:72px;flex-shrink:0;}
+.tb{flex:1;height:5px;background:rgba(255,255,255,.07);overflow:hidden;}
+.tf{height:100%;transition:width 1.4s ease;position:relative;}
+.tf::after{content:"";position:absolute;right:0;top:0;width:3px;height:100%;background:#fff;opacity:.35;box-shadow:0 0 6px #fff;}
+.tv{font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:500;min-width:30px;text-align:right;}
+.tb2{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:9px;letter-spacing:1.5px;padding:2px 8px;min-width:68px;text-align:center;}
+/* METRIC */
+.mr{margin-bottom:14px;}
+.ml{display:flex;justify-content:space-between;margin-bottom:5px;font-size:13px;}
+.ml span:last-child{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--gold);}
+.mb{height:5px;background:rgba(255,255,255,.07);}
+.mf{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold));transition:width 1.3s ease;}
+/* COUNTRY CARDS */
+.cc{background:var(--glassd);border:1px solid var(--border);padding:16px;transition:all .3s;cursor:pointer;position:relative;overflow:hidden;}
+.cc:hover{border-color:var(--border2);transform:translateY(-4px);box-shadow:0 14px 45px rgba(0,0,0,.55);}
+.cct{position:absolute;top:0;left:0;right:0;height:3px;}
+.ccn{font-family:"Playfair Display",serif;font-size:18px;font-weight:700;color:#fff;margin:12px 0 10px;}
+.csr{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;}
+.csr:last-child{border-bottom:none;}
+.csk{color:var(--dim2);}
+.csv{font-family:"JetBrains Mono",monospace;font-size:10px;font-weight:500;}
+/* INTEL MODULES */
+.im{background:var(--glassd);border:1px solid var(--border);padding:22px;position:relative;overflow:hidden;transition:all .35s;}
+.im:hover{border-color:rgba(201,162,39,.42);box-shadow:0 0 38px rgba(201,162,39,.07);}
+.im-badge{position:absolute;top:12px;right:12px;font-family:"JetBrains Mono",monospace;font-size:8px;letter-spacing:2px;color:var(--gold2);border:1px solid rgba(201,162,39,.2);padding:2px 8px;}
+.im-ico{width:44px;height:44px;background:var(--gold4);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:14px;font-size:18px;color:var(--gold);}
+.im-t{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#fff;margin-bottom:8px;}
+.im-d{font-size:12px;color:var(--dim2);font-style:italic;line-height:1.7;margin-bottom:14px;}
+.im-btn{background:transparent;border:1px solid var(--border);color:var(--gold);font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:7px 14px;cursor:pointer;transition:all .2s;}
+.im-btn:hover{background:var(--gold4);border-color:var(--border2);}
+/* PROB RINGS */
+.pr{width:80px;height:80px;position:relative;margin:0 auto 8px;}
+.pr svg{width:100%;height:100%;transform:rotate(-90deg);}
+.pr circle{fill:none;stroke-width:5;}
+.pr .trk{stroke:rgba(255,255,255,.07);}
+.pr .pn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:"Playfair Display",serif;font-size:20px;font-weight:700;color:#fff;}
+/* SIM */
+.so{background:rgba(255,255,255,.025);border:1px solid var(--border);padding:11px 15px;cursor:pointer;transition:all .2s;font-size:13px;display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.so:hover,.so.sel{border-color:var(--gold);background:var(--gold4);color:var(--gold);}
+.sr{background:rgba(0,0,0,.5);border:1px solid rgba(201,162,39,.15);padding:16px;margin-top:14px;font-size:13px;display:none;line-height:1.9;}
+.sr.show{display:block;animation:fU .3s ease;}
+/* SHADOW */
+.sz{background:#000;border:1px solid rgba(201,162,39,.25);position:relative;overflow:hidden;}
+.sz::before{content:"CLASSIFIÉ";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);font-family:"Playfair Display",serif;font-size:82px;font-weight:700;color:rgba(192,57,43,.03);pointer-events:none;white-space:nowrap;letter-spacing:10px;}
+.shi{border-bottom:1px solid rgba(201,162,39,.07);padding:15px 20px;display:flex;gap:14px;cursor:pointer;transition:background .2s;}
+.shi:hover{background:rgba(201,162,39,.04);}
+.sid{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--red);letter-spacing:1px;flex-shrink:0;width:90px;}
+/* SEARCH */
+#si{width:100%;background:rgba(0,0,0,.42);border:1px solid var(--border);border-left:3px solid var(--gold);color:var(--txt);font-family:"Space Grotesk",sans-serif;font-size:17px;padding:14px 16px 14px 50px;outline:none;transition:border-color .2s;}
+#si:focus{border-color:rgba(201,162,39,.55);}
+.sf{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 13px;border:1px solid var(--border);background:transparent;color:var(--dim2);cursor:pointer;transition:all .2s;}
+.sf:hover,.sf.on{border-color:var(--gold);background:var(--gold4);color:var(--gold);}
+/* CMS */
+.cl{font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:2px;color:var(--dim2);text-transform:uppercase;display:block;margin-bottom:6px;}
+.ci{width:100%;background:rgba(0,0,0,.42);border:1px solid var(--border);color:var(--txt);padding:10px 13px;outline:none;font-family:"Space Grotesk",sans-serif;font-size:14px;transition:border-color .2s;}
+.ci:focus{border-color:var(--gold);}
+.cs2{width:100%;background:rgba(0,0,0,.58);border:1px solid var(--border);color:var(--txt);padding:10px 13px;outline:none;font-family:"JetBrains Mono",monospace;font-size:11px;transition:border-color .2s;}
+.cs2:focus{border-color:var(--gold);}
+/* FLASH */
+#fl{position:fixed;bottom:30px;right:30px;background:rgba(0,0,0,.97);border:1px solid var(--gold);color:var(--txt);font-family:"JetBrains Mono",monospace;font-size:11px;padding:12px 22px;z-index:9999;transition:opacity .4s;display:none;letter-spacing:1px;box-shadow:0 0 30px rgba(201,162,39,.15);}
+/* REGION */
+.region-body{transition:opacity .35s,filter .35s;}
+
+/* VISUAL ENCRYPTION HOVER */
+.classified-blur{filter:blur(5px);transition:filter .3s;cursor:pointer;user-select:none;}
+.classified-blur:hover{filter:blur(0);}
+/* KILL SWITCH */
+#kill-btn{position:fixed;bottom:18px;left:18px;width:32px;height:32px;background:rgba(192,57,43,.12);border:1px solid rgba(192,57,43,.25);border-radius:50%;cursor:pointer;z-index:9000;display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(192,57,43,.4);transition:all .3s;}
+#kill-btn:hover{background:rgba(192,57,43,.35);border-color:var(--red);color:var(--red);box-shadow:0 0 20px rgba(192,57,43,.4);}
+/* AUDIO BRIEF BTN */
+.audio-btn{display:inline-flex;align-items:center;gap:7px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);color:var(--grn);font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:1px;padding:7px 14px;cursor:pointer;transition:all .2s;text-transform:uppercase;}
+.audio-btn:hover{background:rgba(16,185,129,.15);border-color:var(--grn);}
+.audio-btn.speaking{animation:blink .6s infinite;}
+/* SHADOW VIP CLEARANCE */
+.clearance-vip{background:linear-gradient(135deg,rgba(201,162,39,.08),transparent);border:1px solid rgba(201,162,39,.3);padding:10px 16px;font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:2px;color:var(--gold);text-align:center;text-transform:uppercase;}
+
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+@media(max-width:1200px){.g4{grid-template-columns:repeat(2,1fr);}.g13{grid-template-columns:1fr;}}
+@media(max-width:768px){.g4,.g3,.g2,.g12,.g13{grid-template-columns:1fr;}.hdr-mid{display:none;}.hdr{padding:0 1rem;}main{padding:16px 1rem 50px;}}
+</style>
+</head>
+<body>
+<div class="geo-grid"></div>
+<div class="crn c-tl"></div><div class="crn c-tr"></div><div class="crn c-bl"></div><div class="crn c-br"></div>
+<div id="fl"></div>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="t-lbl">&#9889; BREAKING</div>
+  <div style="overflow:hidden;flex:1;">
+    <div class="t-belt" id="ticker-belt">
+      <span><em>&#9888;</em>OPERATION HEDGEHOG &mdash; Deploiement OTAN imminent Sahel</span>
+      <span><em>&#128308;</em>MALI : Mouvement Wagner frontiere mauritanienne &mdash; T-24h confirme</span>
+      <span><em>&#9889;</em>ALGERIE : Dissensions internes Haut Commandement &mdash; Source verifiee</span>
+      <span><em>&#128993;</em>EAU-MAROC : 340 comptes identifies &middot; Financement Abu Dhabi trace</span>
+      <span><em>&#128309;</em>GAZODUC NIGERIA-MAROC : Avancement corridor Atlantique 5660 km</span>
+      <span><em>&#128308;</em>RDC-M23 : Escalade zone Bukavu &middot; Securite Grands Lacs degradee</span>
+      <span><em>&#9888;</em>OPERATION HEDGEHOG &mdash; Deploiement OTAN imminent Sahel</span>
+      <span><em>&#128308;</em>MALI : Mouvement Wagner frontiere mauritanienne &mdash; T-24h confirme</span>
+      <span><em>&#9889;</em>ALGERIE : Dissensions internes Haut Commandement &mdash; Source verifiee</span>
+      <span><em>&#128993;</em>EAU-MAROC : 340 comptes identifies &middot; Financement Abu Dhabi trace</span>
+      <span><em>&#128309;</em>GAZODUC NIGERIA-MAROC : Avancement corridor Atlantique 5660 km</span>
+      <span><em>&#128308;</em>RDC-M23 : Escalade zone Bukavu &middot; Securite Grands Lacs degradee</span>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="hdr">
+    <div class="logo">
+      <div class="logo-ico" style="background:transparent;width:52px;height:52px;clip-path:none;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--gold);box-shadow:0 0 18px rgba(201,162,39,.35);"><img src="data:image/jpeg;base64,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AAMowAD0fwPG8D2bYHQWNm3JMuEn9wWgAAQM+VNpV2bPKqj3Tcpg5WL79gJv7VlawE1/MrR9wIeqnW+JKYcRhIxqjkGAVl43wBEtFWOARsQRYyDqG8YQPKoamd7ezCkIgNq3FSrxp3bC9GKCgBNBEBTPZJOjQ2vOgB4hAaurHQ/gfCptzXX2c818VmmuGHkuQEGtIcHmyabtSRGsMfVWP/4Va4aP3yeLgCsX7TxNw59WUmok9Ff8MxcfAgAP13V0AAfI3bpiy4T9SiAqAJNQKtGcDtANRL3LwFywEo9cs8kmPYpCY6yIKx9DDJoiWI+agAIyAjrn3KLHB3FbmDH5Z1pxBPHy1Q4owAEFku3liiwWAQJmMpw8JkqJpmCQN+PQAAEszbV4cwd7PEyDQVS+NKc1L6sni6KwAAABDF37AAtvqvvrikLisqgtriMBAAQAAAAADl58CAAuMkvvvqlvCkJjishtbwwAAAAAATjpPfDNjgjhsvistrigvt4PQgAAAAAAAIuEmVdPPvvgAPNDCFKBjEZMwAAAAAAAAAAYWyyCxnoAAFPMIFOWvh4AAAAAAAAAAAAAiCjYixBTjntjRBQO+gQAAAAAAAAAAAAAAEXBFKJiQ46t8a00wAAAAAAAAAAAAAAAAAAAotBRr+VBAIQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACAAMAAAAQ888888888883/oKjnu3388888888888888888888/hdUErceJZE/my08888888888888888vI/EqREoQzZVmDIC228888888888885ymFs/mUDquk2a0wJyHn9888888888842u3Xes8xTomwA0oscaXoO7888888889mw3C8c8wA2S+eM4Q8wYEjSt+88888883VkOAUwMfES+aGCeQEw8cG1Qu388888mrTq4EYD8go6uX7pNKokQQGx+uJ88886Z/COiZGEwo2XlHqIiaT8wE68yceU888i8HZdDNbi9q60ayd8g+bO+SksA7vP8APPOAsBfJ04vQyjjIw1mAuQVu9HtoaqNP/OHsFJ/LZ8JL5ueJu1bDLkWd2Z4TuxY//KKbufW5z7TTjpwt2ch+iMtosOXcTwjpvMTC/wCoS1GGQjc+E6vdKsONzz6IllGP6PxcSL9gvWX2yOM++GJoMdwkGTGJ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" style="width:100%;height:100%;object-fit:cover;" alt="IGH Logo"></div>
+      <div>
+        <h1 style="font-size:17px;letter-spacing:3px;">INSTITUT G&Eacute;OPOLITIQUE HORIZONS</h1>
+        <p>Centre d&apos;Analyse &amp; Pr&eacute;vision Strat&eacute;gique &mdash; Tanger, Maroc</p>
+      </div>
+    </div>
+    <div class="hdr-mid">
+      <div class="pill"><span class="dot d-r"></span><span style="color:#ef4444;font-size:9px;letter-spacing:1.5px;">8 CRISES ACTIVES</span></div>
+      <div class="pill"><span class="dot d-g"></span><span style="color:var(--dim2);font-size:9px;">TANGER</span><span style="color:var(--border2);margin:0 9px;">|</span><span id="clk">--:--:--</span></div>
+    </div>
+    <div class="hdr-right">
+      <div style="position:relative;"><button class="ibtn"><i class="fas fa-bell"></i><span class="nb2"></span></button></div>
+      <button class="ibtn" onclick="go('recherche')"><i class="fas fa-search"></i></button>
+      <button class="ibtn"><i class="fas fa-cog"></i></button>
+      <div class="ava">IGH</div>
+    </div>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <button class="nb active" onclick="go('dashboard')" data-tab="dashboard"><i class="fas fa-th-large"></i>Vue d'Ensemble</button>
+    <button class="nb" onclick="go('maghreb')" data-tab="maghreb"><i class="fas fa-map-marker-alt"></i>Maghreb</button>
+    <button class="nb" onclick="go('sahel')" data-tab="sahel"><i class="fas fa-exclamation-triangle"></i>Sahel<span class="nc">!</span></button>
+    <button class="nb" onclick="go('afrique')" data-tab="afrique"><i class="fas fa-globe-africa"></i>Afrique Sub.</button>
+    <button class="nb" onclick="go('orient')" data-tab="orient"><i class="fas fa-mosque"></i>Moyen-Orient</button>
+    <button class="nb" onclick="go('securite')" data-tab="securite"><i class="fas fa-shield-alt"></i>S&eacute;curit&eacute;</button>
+    <button class="nb" onclick="go('economie')" data-tab="economie"><i class="fas fa-chart-line"></i>G&eacute;o&eacute;conomie</button>
+    <button class="nb" onclick="go('intel')" data-tab="intel"><i class="fas fa-brain"></i>Intelligence</button>
+    <button class="nb" onclick="go('carte')" data-tab="carte"><i class="fas fa-map-marked-alt"></i>Carte</button>
+    <button class="nb" onclick="go('recherche')" data-tab="recherche"><i class="fas fa-search"></i>Recherche</button>
+    <button class="nb" onclick="go('cms')" data-tab="cms"><i class="fas fa-pen-nib"></i>Publier</button>
+    <button class="nb" onclick="go('shadow')" data-tab="shadow"><i class="fas fa-user-secret"></i>Shadow</button>
+    <button class="nb" onclick="go('pubs')" data-tab="pubs"><i class="fas fa-book"></i>Publications</button>
+  </div>
+</nav>
+<div class="bc">IGH <span style="color:var(--border2);margin:0 8px;">/</span><span class="cur" id="bct">Vue d'Ensemble</span></div>
+
+<main>
+
+<!-- ===== TAB: DASHBOARD ===== -->
+<div id="dashboard" class="tab active">
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:22px;">
+    <div class="al-r">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+            <span class="abg" style="background:var(--red);color:#fff;">&#9888; ALERTE ROUGE</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--red);letter-spacing:2px;">NIVEAU CRITIQUE</span>
+          </div>
+          <div style="font-family:'Playfair Display',serif;font-size:18px;color:#fff;margin-bottom:6px;">CRISE S&Eacute;CURITAIRE SAHEL &mdash; OP&Eacute;RATION HEDGEHOG</div>
+          <div style="font-size:13px;color:var(--dim2);font-style:italic;">D&eacute;ploiement OTAN imminent. Tensions fronti&egrave;res Mali-Niger-Burkina. Corridors terroristes activ&eacute;s.</div>
+        </div>
+        <button onclick="go('sahel')" style="background:rgba(192,57,43,.15);border:1px solid rgba(192,57,43,.5);color:#ef4444;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:9px 15px;cursor:pointer;white-space:nowrap;flex-shrink:0;align-self:center;">Analyse &rarr;</button>
+      </div>
+    </div>
+    <div class="al-g">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span class="abg" style="background:var(--gold);color:var(--navy);">VEILLE</span></div>
+      <div style="font-family:'Playfair Display',serif;font-size:14px;color:#fff;margin-bottom:5px;">Diplomatie US-Maghreb</div>
+      <div style="font-size:12px;color:var(--dim2);font-style:italic;">Nomination Joshua Harris &agrave; Alger. Pivot strat&eacute;gique am&eacute;ricain.</div>
+    </div>
+  </div>
+  <div class="g4" style="margin-bottom:24px;">
+    <div class="kpi k-g"><div class="kn" style="color:var(--gold);" id="kpub">247</div><div class="kl">Publications</div><div class="kd" style="color:var(--grn);">&#9650; +12 ce mois</div></div>
+    <div class="kpi k-r"><div class="kn" style="color:var(--red);">8</div><div class="kl">Crises Actives</div><div class="kd" style="color:var(--red);">&#9650; Niveau critique</div></div>
+    <div class="kpi k-b"><div class="kn" style="color:var(--blu);">12</div><div class="kl">Pays Monitor&eacute;s</div><div class="kd" style="color:var(--blu);">MAJ: Il y a 2h</div></div>
+    <div class="kpi k-v"><div class="kn" style="color:var(--grn);">156</div><div class="kl">Experts R&eacute;seau</div><div class="kd" style="color:var(--grn);">&#9650; +5 nouveaux</div></div>
+  </div>
+  <div class="g13">
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="pnl">
+        <div class="ph"><span class="pt"><i class="fas fa-folder-tree"></i> Rubriques</span></div>
+        <div style="padding:6px 0;">
+          <div class="ri" onclick="toggleR('rg',this)"><div class="rh"><span><i class="fas fa-globe" style="color:var(--blu);margin-right:9px;"></i>Zones G&eacute;o.</span><i class="fas fa-chevron-down" style="font-size:9px;transition:transform .3s;" id="ico-rg"></i></div><div class="rs-sub" id="rg"><a href="#">Maghreb Occidental</a><a href="#">Maghreb Central</a><a href="#">Sahel (Niger, Mali, Burkina)</a><a href="#">Golfe de Guin&eacute;e</a><a href="#">Corne de l'Afrique</a></div></div>
+          <div class="ri" onclick="toggleR('rt',this)"><div class="rh"><span><i class="fas fa-tags" style="color:var(--grn);margin-right:9px;"></i>Th&eacute;matiques</span><i class="fas fa-chevron-down" style="font-size:9px;transition:transform .3s;" id="ico-rt"></i></div><div class="rs-sub" id="rt"><a href="#">Terrorisme &amp; Insurrection</a><a href="#">S&eacute;curit&eacute; Maritime</a><a href="#">Migration &amp; Fronti&egrave;res</a><a href="#">&Eacute;nergie &amp; Minerais</a><a href="#">Influence &Eacute;trang&egrave;re</a></div></div>
+          <div class="ri" onclick="toggleR('ra',this)"><div class="rh"><span><i class="fas fa-users" style="color:var(--pur);margin-right:9px;"></i>Acteurs</span><i class="fas fa-chevron-down" style="font-size:9px;transition:transform .3s;" id="ico-ra"></i></div><div class="rs-sub" id="ra"><a href="#">&Eacute;tats &amp; Gouvernements</a><a href="#">Groupes Arm&eacute;s</a><a href="#">PMC / Wagner / Milices</a><a href="#">UA, CEDEAO, ONU</a><a href="#">Acteurs Transnationaux</a></div></div>
+          <div class="ri" onclick="toggleR('rp',this)"><div class="rh"><span><i class="fas fa-file-alt" style="color:var(--gold);margin-right:9px;"></i>Publications</span><i class="fas fa-chevron-down" style="font-size:9px;transition:transform .3s;" id="ico-rp"></i></div><div class="rs-sub" id="rp"><a href="#">Notes Strat&eacute;giques (NS)</a><a href="#">D&eacute;p&ecirc;ches Analytiques (DA)</a><a href="#">Rapports Sp&eacute;ciaux (RS)</a><a href="#">Flash Info</a><a href="#">Shadow Briefing (VIP)</a></div></div>
+        </div>
+      </div>
+      <div class="pnl">
+        <div class="ph"><span class="pt"><i class="fas fa-radiation-alt"></i> Indice de Tension IGH</span></div>
+        <div class="pb">
+          <div class="tr"><span class="tn" style="color:#ef4444;">SAHEL</span><div class="tb"><div class="tf" style="width:92%;background:linear-gradient(90deg,#7f1d1d,#ef4444);"></div></div><span class="tv" style="color:#ef4444;">9.2</span><span class="tb2" style="background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.3);">CRITIQUE</span></div>
+          <div class="tr"><span class="tn" style="color:#ef4444;">RDC</span><div class="tb"><div class="tf" style="width:81%;background:linear-gradient(90deg,#7f1d1d,#ef4444);"></div></div><span class="tv" style="color:#ef4444;">8.1</span><span class="tb2" style="background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.3);">CRITIQUE</span></div>
+          <div class="tr"><span class="tn" style="color:var(--org);">LIBYE</span><div class="tb"><div class="tf" style="width:74%;background:linear-gradient(90deg,#92400e,var(--org));"></div></div><span class="tv" style="color:var(--org);">7.4</span><span class="tb2" style="background:rgba(249,115,22,.1);color:var(--org);border:1px solid rgba(249,115,22,.3);">&Eacute;LEV&Eacute;</span></div>
+          <div class="tr"><span class="tn" style="color:var(--gold);">MAGHREB</span><div class="tb"><div class="tf" style="width:62%;background:linear-gradient(90deg,var(--gold2),var(--gold));"></div></div><span class="tv" style="color:var(--gold);">6.2</span><span class="tb2" style="background:var(--gold4);color:var(--gold);border:1px solid rgba(201,162,39,.3);">MOD&Eacute;R&Eacute;</span></div>
+          <div class="tr"><span class="tn" style="color:var(--blu);">GOLFE G.</span><div class="tb"><div class="tf" style="width:55%;background:linear-gradient(90deg,#1e3a5f,var(--blu));"></div></div><span class="tv" style="color:var(--blu);">5.5</span><span class="tb2" style="background:rgba(59,130,246,.1);color:var(--blu);border:1px solid rgba(59,130,246,.3);">VIGILANCE</span></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:20px;">
+      <div class="pnl">
+        <div class="ph"><span class="pt"><i class="fas fa-chart-area"></i> &Eacute;volution des Tensions R&eacute;gionales &mdash; IGH Index 2025&ndash;2026</span></div>
+        <div class="pb"><canvas id="mainChart" height="108"></canvas></div>
+      </div>
+      <div class="pnl">
+        <div class="ph"><span class="pt"><i class="fas fa-rss"></i> Derni&egrave;res Analyses</span><span onclick="go('pubs')" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);cursor:pointer;letter-spacing:1px;">TOUT VOIR &rarr;</span></div>
+        <div id="dash-feed">
+          <div class="pi"><span class="pd" style="background:#ef4444;box-shadow:0 0 6px #ef4444;"></span><span class="pc">IGH-NS-2026-02-017</span><span class="ptl">Nomination Schapiro : Diplomatie US de la coercition &agrave; l'&eacute;gard de l'Alg&eacute;rie</span><span class="ptag t-m">MAGHREB</span><span class="ptm">2h</span></div>
+          <div class="pi"><span class="pd" style="background:var(--gold);box-shadow:0 0 6px var(--gold);"></span><span class="pc">IGH-DA-2026-02-089</span><span class="ptl">Op&eacute;ration Hedgehog &mdash; D&eacute;ploiement OTAN dans le Sahel</span><span class="ptag t-s">SAHEL</span><span class="ptm">5h</span></div>
+          <div class="pi"><span class="pd" style="background:var(--blu);box-shadow:0 0 6px var(--blu);"></span><span class="pc">IGH-RS-2026-01-003</span><span class="ptl">La Guerre Cognitive &Eacute;mirienne contre le Maroc</span><span class="ptag t-o">M.-ORIENT</span><span class="ptm">1j</span></div>
+          <div class="pi"><span class="pd" style="background:var(--grn);box-shadow:0 0 6px var(--grn);"></span><span class="pc">IGH-DA-2026-02-091</span><span class="ptl">Gazoduc Nigeria-Maroc : &Eacute;tat d'avancement 2026</span><span class="ptag t-e">G&Eacute;O-&Eacute;CO</span><span class="ptm">1j</span></div>
+          <div class="pi"><span class="pd" style="background:#ef4444;box-shadow:0 0 6px #ef4444;animation:blink .8s infinite;"></span><span class="pc">IGH-FI-2026-03-001</span><span class="ptl">FLASH &mdash; Mouvement Wagner confirm&eacute; fronti&egrave;re Mali-Mauritanie</span><span class="ptag t-k">S&Eacute;CURIT&Eacute;</span><span class="ptm">30min</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: MAGHREB ===== -->
+<div id="maghreb" class="tab">
+  <div class="stl">Maghreb</div>
+  <div class="ssb">Analyse g&eacute;opolitique &mdash; Maroc &middot; Alg&eacute;rie &middot; Tunisie &middot; Libye</div>
+  <div class="g4" style="margin-bottom:22px;">
+    <div class="cc"><div class="cct" style="background:linear-gradient(90deg,#c1272d,#006233);"></div><div class="ccn">MAROC</div><div class="csr"><span class="csk">Tension</span><span class="csv" style="color:#ef4444;">6.8/10</span></div><div class="csr"><span class="csk">Sahara</span><span class="csv" style="color:var(--gold);">Actif</span></div><div class="csr"><span class="csk">Diplomatie</span><span class="csv" style="color:var(--grn);">Offensive</span></div><div class="csr"><span class="csk">Relation Alg&eacute;rie</span><span class="csv" style="color:var(--red);">Rompue</span></div></div>
+    <div class="cc"><div class="cct" style="background:linear-gradient(90deg,#006233,white,#d21034);"></div><div class="ccn">ALG&Eacute;RIE</div><div class="csr"><span class="csk">Tension</span><span class="csv" style="color:#ef4444;">7.2/10</span></div><div class="csr"><span class="csk">R&eacute;gime</span><span class="csv" style="color:var(--org);">Militaire</span></div><div class="csr"><span class="csk">Fronti&egrave;res</span><span class="csv" style="color:var(--red);">Ferm&eacute;es</span></div><div class="csr"><span class="csk">Gaz vers UE</span><span class="csv" style="color:var(--grn);">10% UE</span></div></div>
+    <div class="cc"><div class="cct" style="background:linear-gradient(90deg,#e70013,white,#e70013);"></div><div class="ccn">TUNISIE</div><div class="csr"><span class="csk">Tension</span><span class="csv" style="color:var(--gold);">5.1/10</span></div><div class="csr"><span class="csk">Politique</span><span class="csv" style="color:var(--org);">Incertaine</span></div><div class="csr"><span class="csk">Migration</span><span class="csv" style="color:#ef4444;">Critique</span></div><div class="csr"><span class="csk">&Eacute;conomie</span><span class="csv" style="color:#ef4444;">FMI/Crise</span></div></div>
+    <div class="cc"><div class="cct" style="background:linear-gradient(90deg,#000,#239e46,#e70013);"></div><div class="ccn">LIBYE</div><div class="csr"><span class="csk">Tension</span><span class="csv" style="color:#ef4444;">7.4/10</span></div><div class="csr"><span class="csk">Fragmentation</span><span class="csv" style="color:var(--red);">Est/Ouest</span></div><div class="csr"><span class="csk">Ing&eacute;rences</span><span class="csv" style="color:var(--org);">Turquie/EAU</span></div><div class="csr"><span class="csk">P&eacute;trole</span><span class="csv" style="color:var(--gold);">1.2M b/j</span></div></div>
+  </div>
+  <div class="g2">
+    <div class="pnl"><div class="ph"><span class="pt"><i class="fas fa-chart-line"></i> Index de Tension 2025&ndash;2026</span></div><div class="pb"><canvas id="maghrebChart" height="185"></canvas></div></div>
+    <div class="pnl"><div class="ph"><span class="pt"><i class="fas fa-file-alt"></i> Analyses R&eacute;centes Maghreb</span></div>
+      <div class="pi"><span class="pd" style="background:#ef4444;"></span><span class="pc">IGH-NS-017</span><span class="ptl">Schapiro : Diplomatie de la coercition US-Alg&eacute;rie</span><span class="ptm">2h</span></div>
+      <div class="pi"><span class="pd" style="background:var(--gold);"></span><span class="pc">IGH-DA-085</span><span class="ptl">Sahara : Nouvelles reconnaissances internationales</span><span class="ptm">1j</span></div>
+      <div class="pi"><span class="pd" style="background:var(--blu);"></span><span class="pc">IGH-RS-012</span><span class="ptl">Libye : Retour de Haftar &amp; man&oelig;uvres turques</span><span class="ptm">2j</span></div>
+      <div class="pi"><span class="pd" style="background:var(--grn);"></span><span class="pc">IGH-DA-082</span><span class="ptl">Tunisie : &Eacute;lections sous pression FMI</span><span class="ptm">3j</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: SAHEL ===== -->
+<div id="sahel" class="tab">
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px;">
+    <div class="stl" style="margin:0;">Sahel</div>
+    <span style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.5);color:#ef4444;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;padding:4px 12px;animation:blink 1.5s infinite;">&#9888; ZONE &Agrave; HAUT RISQUE</span>
+  </div>
+  <div class="ssb">Mali &middot; Burkina Faso &middot; Niger &middot; Tchad &mdash; S&eacute;curit&eacute;, terrorisme et dynamiques politiques</div>
+  <div class="g4" style="margin-bottom:22px;">
+    <div class="cc"><div class="cct" style="background:linear-gradient(90deg,#14b8a6,#ffd700,#ef4444);"></div><div class="ccn">MALI</div><div class="csr"><span class="csk">Groupes arm&eacute;s</span><span class="csv" style="color:#ef4444;">JNIM, EIGS</span></div><div class="csr"><span class="csk">PMC</span><span class="csv" style="color:var(--org);">Wagner</span></div><div class="csr"><span class="csk">Instabilit&eacute;</span><span class="csv" style="color:#ef4444;">CRITIQUE 9.0</span></div></div>
+    <div class="cc"><div class="cct" style="background:linear-gradient(90deg,#ef4444,#000,#22c55e);"></div><div class="ccn">BURKINA FASO</div><div class="csr"><span class="csk">Groupes arm&eacute;s</span><span class="csv" style="color:#ef4444;">JNIM</span></div><div class="csr"><span class="csk">Coup d'&Eacute;tat</span><span class="csv" style="color:var(--org);">Sept. 2022</span></div><div class="csr"><span class="csk">Statut</span><span class="csv" style="color:var(--org);">FRAGILE 8.5</span></div></div>
+    <div class="cc"><div class="cct" style="background:linear-gradient(90deg,#f97316,white,#f97316);"></div><div class="ccn">NIGER</div><div class="csr"><span class="csk">Transition</span><span class="csv" style="color:var(--gold);">Post-coup</span></div><div class="csr"><span class="csk">CEDEAO</span><span class="csv" style="color:#ef4444;">Sanctions</span></div><div class="csr"><span class="csk">Uranium</span><span class="csv" style="color:var(--grn);">7% mondial</span></div></div>
+    <div class="cc"><div class="cct" style="background:linear-gradient(90deg,#3b82f6,#ffd700,#ef4444);"></div><div class="ccn">TCHAD</div><div class="csr"><span class="csk">Dirigeant</span><span class="csv" style="color:var(--gold);">M. D&eacute;by</span></div><div class="csr"><span class="csk">France</span><span class="csv" style="color:var(--org);">R&eacute;duite</span></div><div class="csr"><span class="csk">Stabilit&eacute;</span><span class="csv" style="color:var(--gold);">PR&Eacute;CAIRE</span></div></div>
+  </div>
+  <div class="pnl"><div class="ph"><span class="pt"><i class="fas fa-chart-bar"></i> Attaques Terroristes &mdash; &Eacute;volution 2024&ndash;2026</span></div><div class="pb"><canvas id="sahelChart" height="130"></canvas></div></div>
+</div>
+
+<!-- ===== TAB: AFRIQUE SUB ===== -->
+<div id="afrique" class="tab">
+  <div class="stl">Afrique Subsaharienne</div>
+  <div class="ssb">Golfe de Guin&eacute;e &middot; Corne de l'Afrique &middot; Grands Lacs</div>
+  <div class="g2">
+    <div class="pnl"><div class="ph"><span class="pt"><i class="fas fa-ship"></i> Piraterie Maritime &mdash; Golfe de Guin&eacute;e</span></div><div class="pb">
+      <div class="mr"><div class="ml"><span>Nigeria</span><span>75% incidents</span></div><div class="mb"><div class="mf" style="width:75%;background:linear-gradient(90deg,#7f1d1d,#ef4444);"></div></div></div>
+      <div class="mr"><div class="ml"><span>Golfe de Guin&eacute;e global</span><span>45% mondial</span></div><div class="mb"><div class="mf" style="width:45%;"></div></div></div>
+      <div class="mr"><div class="ml"><span>D&eacute;troit Malacca (comp.)</span><span>22%</span></div><div class="mb"><div class="mf" style="width:22%;background:linear-gradient(90deg,#1e3a5f,var(--blu));"></div></div></div>
+    </div></div>
+    <div class="pnl"><div class="ph"><span class="pt"><i class="fas fa-fire"></i> Conflit RDC &mdash; M23</span></div><div class="pb">
+      <div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.3);border-left:3px solid var(--red);padding:13px;margin-bottom:14px;">
+        <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;letter-spacing:2px;color:#ef4444;margin-bottom:5px;">&#9889; ESCALADE ACTIVE</div>
+        <p style="font-size:13px;color:var(--dim2);font-style:italic;">Progression vers Bukavu &amp; Goma. Rwanda&ndash;Ouganda&ndash;RDC. Implications r&eacute;gionales majeures.</p>
+      </div>
+      <div class="csr"><span class="csk">D&eacute;plac&eacute;s</span><span class="csv" style="color:#ef4444;">+6.9 Millions</span></div>
+      <div class="csr"><span class="csk">MONUSCO</span><span class="csv" style="color:var(--org);">En retrait</span></div>
+      <div class="csr"><span class="csk">Ressources</span><span class="csv" style="color:var(--gold);">Cobalt &mdash; Coltan</span></div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ===== TAB: ORIENT ===== -->
+<div id="orient" class="tab">
+  <div class="stl">Moyen-Orient &amp; Influence R&eacute;gionale</div>
+  <div class="ssb">Dynamiques de puissance et projections strat&eacute;giques sur l'Afrique du Nord</div>
+  <div class="g3">
+    <div class="cc" style="border-left:3px solid #22c55e;"><div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;color:#fff;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fas fa-oil-can" style="color:#22c55e;"></i>Arabie Saoudite</div><p style="font-size:12px;color:var(--dim2);font-style:italic;margin-bottom:10px;">Influence &eacute;conomique en Afrique de l'Est. Vision 2030.</p><div class="csr"><span class="csk">Type</span><span class="csv">&Eacute;conomique</span></div><div class="csr"><span class="csk">R&eacute;f.</span><span class="csv" style="color:var(--gold);">IGH-DA-2026-01-045</span></div></div>
+    <div class="cc" style="border-left:3px solid #ef4444;"><div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;color:#fff;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fas fa-building" style="color:#ef4444;"></i>&Eacute;mirats Arabes Unis</div><p style="font-size:12px;color:var(--dim2);font-style:italic;margin-bottom:10px;">Op&eacute;rations d'influence contre le Maroc. Ports militaires. Guerre cognitive.</p><div class="csr"><span class="csk">Type</span><span class="csv" style="color:#ef4444;">Cognitive + Mil.</span></div><div class="csr"><span class="csk">R&eacute;f.</span><span class="csv" style="color:var(--gold);">IGH-RS-2026-01-003</span></div></div>
+    <div class="cc" style="border-left:3px solid var(--blu);"><div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;color:#fff;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fas fa-mosque" style="color:var(--blu);"></i>Turquie</div><p style="font-size:12px;color:var(--dim2);font-style:italic;margin-bottom:10px;">Expansion commerciale et militaire. Base Somalie. Rivalit&eacute; France.</p><div class="csr"><span class="csk">Type</span><span class="csv">Commerciale + Mil.</span></div><div class="csr"><span class="csk">MAJ</span><span class="csv">Hier</span></div></div>
+    <div class="cc" style="border-left:3px solid #ffd700;"><div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;color:#fff;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fas fa-star" style="color:#ffd700;"></i>Isra&euml;l</div><p style="font-size:12px;color:var(--dim2);font-style:italic;margin-bottom:10px;">Accords d'Abraham. Coop&eacute;ration Maroc&ndash;Isra&euml;l. Technologie Pegasus II.</p><div class="csr"><span class="csk">Type</span><span class="csv">S&eacute;curitaire + Tech.</span></div><div class="csr"><span class="csk">MAJ</span><span class="csv">2j</span></div></div>
+    <div class="cc" style="border-left:3px solid var(--pur);"><div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;color:#fff;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fas fa-flag" style="color:var(--pur);"></i>Iran</div><p style="font-size:12px;color:var(--dim2);font-style:italic;margin-bottom:10px;">R&eacute;seaux chi'ites Afrique de l'Ouest. Nigeria, Ghana. Export id&eacute;ologique.</p><div class="csr"><span class="csk">Type</span><span class="csv">Id&eacute;ologique</span></div><div class="csr"><span class="csk">MAJ</span><span class="csv">3j</span></div></div>
+    <div class="cc" style="border-left:3px solid var(--org);"><div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;color:#fff;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fas fa-broadcast-tower" style="color:var(--org);"></i>Qatar</div><p style="font-size:12px;color:var(--dim2);font-style:italic;margin-bottom:10px;">M&eacute;diation &amp; soft power via Al Jazeera. Investissements Afrique.</p><div class="csr"><span class="csk">Type</span><span class="csv">M&eacute;dias + Fin.</span></div><div class="csr"><span class="csk">MAJ</span><span class="csv">4j</span></div></div>
+  </div>
+</div>
+
+<!-- ===== TAB: SECURITE ===== -->
+<div id="securite" class="tab">
+  <div class="stl">S&eacute;curit&eacute; &amp; D&eacute;fense</div>
+  <div class="ssb">Terrorisme &middot; Groupes arm&eacute;s &middot; Strat&eacute;gies militaires &middot; Forces internationales</div>
+  <div class="g12">
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="pnl"><div class="ph"><span class="pt"><i class="fas fa-skull-crossbones"></i> Groupes Surveill&eacute;s</span></div><div class="pb">
+        <div class="tr"><span class="tn" style="color:#ef4444;">JNIM</span><div class="tb"><div class="tf" style="width:90%;background:linear-gradient(90deg,#7f1d1d,#ef4444);"></div></div><span class="tb2" style="background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.3);">HAUTE</span></div>
+        <div class="tr"><span class="tn" style="color:#ef4444;">EIGS</span><div class="tb"><div class="tf" style="width:85%;background:linear-gradient(90deg,#7f1d1d,#ef4444);"></div></div><span class="tb2" style="background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.3);">HAUTE</span></div>
+        <div class="tr"><span class="tn" style="color:var(--org);">WAGNER</span><div class="tb"><div class="tf" style="width:65%;background:linear-gradient(90deg,#92400e,var(--org));"></div></div><span class="tb2" style="background:rgba(249,115,22,.1);color:var(--org);border:1px solid rgba(249,115,22,.3);">MOD.</span></div>
+        <div class="tr"><span class="tn" style="color:#ef4444;">M23</span><div class="tb"><div class="tf" style="width:78%;background:linear-gradient(90deg,#7f1d1d,#ef4444);"></div></div><span class="tb2" style="background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.3);">&Eacute;LEV&Eacute;E</span></div>
+        <div class="tr"><span class="tn" style="color:var(--gold);">BOKO H.</span><div class="tb"><div class="tf" style="width:55%;background:linear-gradient(90deg,var(--gold2),var(--gold));"></div></div><span class="tb2" style="background:var(--gold4);color:var(--gold);border:1px solid rgba(201,162,39,.3);">MOD&Eacute;R&Eacute;</span></div>
+      </div></div>
+      <div class="pnl"><div class="ph"><span class="pt"><i class="fas fa-flag"></i> Forces Internationales</span></div><div class="pb" style="font-family:'JetBrains Mono',monospace;font-size:11px;">
+        <div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);"><i class="fas fa-times-circle" style="color:#ef4444;"></i>BARKHANE &mdash; Retrait complet</div>
+        <div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);"><i class="fas fa-sync" style="color:var(--org);"></i>TAKUBA &mdash; Reconfigur&eacute;</div>
+        <div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);"><i class="fas fa-plus-circle" style="color:var(--blu);"></i><span style="color:var(--gold);">HEDGEHOG &mdash; OTAN ACTIF</span></div>
+        <div style="display:flex;align-items:center;gap:9px;padding:7px 0;"><i class="fas fa-times-circle" style="color:var(--dim);"></i><span style="color:var(--dim);">MINUSMA &mdash; Termin&eacute; 2023</span></div>
+      </div></div>
+    </div>
+    <div class="pnl"><div class="ph"><span class="pt"><i class="fas fa-map-marked-alt"></i> Zones de Contr&ocirc;le &mdash; Sahel 2026</span></div>
+    <div class="pb" style="padding:8px;">
+      <svg viewBox="0 0 700 420" style="width:100%;background:#050c1a;border:1px solid rgba(201,162,39,.07);">
+        <defs><filter id="gf1"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+        <ellipse cx="115" cy="125" rx="62" ry="57" fill="rgba(249,115,22,.18)" stroke="#f97316" stroke-width="1.5"/>
+        <text x="115" y="122" text-anchor="middle" fill="#fff" font-family="Playfair Display" font-size="13" font-weight="700">MAROC</text>
+        <text x="115" y="137" text-anchor="middle" fill="#f97316" font-family="JetBrains Mono" font-size="9">6.8</text>
+        <ellipse cx="258" cy="130" rx="82" ry="60" fill="rgba(239,68,68,.18)" stroke="#ef4444" stroke-width="1.5"/>
+        <text x="258" y="127" text-anchor="middle" fill="#fff" font-family="Playfair Display" font-size="14" font-weight="700">ALG&#201;RIE</text>
+        <text x="258" y="142" text-anchor="middle" fill="#ef4444" font-family="JetBrains Mono" font-size="9">7.2</text>
+        <ellipse cx="385" cy="113" rx="36" ry="40" fill="rgba(201,162,39,.17)" stroke="#c9a227" stroke-width="1.5"/>
+        <text x="385" y="109" text-anchor="middle" fill="#fff" font-family="Playfair Display" font-size="11" font-weight="700">TUN.</text>
+        <text x="385" y="124" text-anchor="middle" fill="#c9a227" font-family="JetBrains Mono" font-size="8">5.1</text>
+        <ellipse cx="475" cy="128" rx="68" ry="55" fill="rgba(249,115,22,.18)" stroke="#f97316" stroke-width="1.5"/>
+        <text x="475" y="124" text-anchor="middle" fill="#fff" font-family="Playfair Display" font-size="13" font-weight="700">LIBYE</text>
+        <text x="475" y="139" text-anchor="middle" fill="#f97316" font-family="JetBrains Mono" font-size="9">7.4</text>
+        <ellipse cx="155" cy="248" rx="63" ry="57" fill="rgba(239,68,68,.28)" stroke="#ef4444" stroke-width="2" filter="url(#gf1)"/>
+        <text x="155" y="245" text-anchor="middle" fill="#fff" font-family="Playfair Display" font-size="14" font-weight="700">MALI</text>
+        <text x="155" y="260" text-anchor="middle" fill="#ef4444" font-family="JetBrains Mono" font-size="9">9.0</text>
+        <ellipse cx="252" cy="260" rx="48" ry="44" fill="rgba(239,68,68,.22)" stroke="#ef4444" stroke-width="1.5"/>
+        <text x="252" y="257" text-anchor="middle" fill="#fff" font-family="Playfair Display" font-size="12" font-weight="700">BURKINA</text>
+        <text x="252" y="271" text-anchor="middle" fill="#ef4444" font-family="JetBrains Mono" font-size="9">8.5</text>
+        <ellipse cx="350" cy="242" rx="57" ry="52" fill="rgba(249,115,22,.22)" stroke="#f97316" stroke-width="1.5"/>
+        <text x="350" y="238" text-anchor="middle" fill="#fff" font-family="Playfair Display" font-size="13" font-weight="700">NIGER</text>
+        <text x="350" y="253" text-anchor="middle" fill="#f97316" font-family="JetBrains Mono" font-size="9">7.8</text>
+        <ellipse cx="452" cy="247" rx="50" ry="52" fill="rgba(201,162,39,.18)" stroke="#c9a227" stroke-width="1.5"/>
+        <text x="452" y="243" text-anchor="middle" fill="#fff" font-family="Playfair Display" font-size="13" font-weight="700">TCHAD</text>
+        <text x="452" y="258" text-anchor="middle" fill="#c9a227" font-family="JetBrains Mono" font-size="9">6.5</text>
+        <g stroke-dasharray="6,4" stroke-width="1.5" opacity=".7">
+          <line x1="155" y1="213" x2="350" y2="200" stroke="#8b5cf6"/>
+          <text x="250" y="204" fill="#8b5cf6" font-family="JetBrains Mono" font-size="8" text-anchor="middle">WAGNER</text>
+          <line x1="258" y1="184" x2="385" y2="80" stroke="#3b82f6"/>
+          <line x1="258" y1="184" x2="115" y2="184" stroke="#c9a227"/>
+          <text x="185" y="232" fill="#c9a227" font-family="JetBrains Mono" font-size="8">GAZODUC</text>
+        </g>
+        <circle cx="155" cy="248" r="8" fill="none" stroke="#ef4444" stroke-width="2"><animate attributeName="r" values="8;28;8" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values=".8;0;.8" dur="2s" repeatCount="indefinite"/></circle>
+        <g transform="translate(658,392)"><circle r="18" fill="rgba(0,0,0,.5)" stroke="rgba(201,162,39,.3)"/><text x="0" y="-4" text-anchor="middle" fill="#c9a227" font-family="Playfair Display" font-size="10" font-weight="700">N</text><line x1="0" y1="-12" x2="0" y2="0" stroke="#c9a227" stroke-width="2"/></g>
+      </svg>
+    </div></div>
+  </div>
+</div>
+
+<!-- ===== TAB: ECONOMIE ===== -->
+<div id="economie" class="tab">
+  <div class="stl">G&eacute;o&eacute;conomie</div>
+  <div class="ssb">&Eacute;nergie &middot; Minerais critiques &middot; Infrastructures strat&eacute;giques &middot; Flux commerciaux</div>
+  <div class="g2">
+    <div class="pnl"><div class="ph"><span class="pt"><i class="fas fa-gem"></i> Ressources Strat&eacute;giques</span></div><div class="pb">
+      <div class="mr"><div class="ml"><span>Phosphate &mdash; Maroc</span><span>70% mondial</span></div><div class="mb"><div class="mf" style="width:70%;"></div></div></div>
+      <div class="mr"><div class="ml"><span>P&eacute;trole &mdash; Libye</span><span>1.2M b/j</span></div><div class="mb"><div class="mf" style="width:60%;background:linear-gradient(90deg,#1f2937,#374151);"></div></div></div>
+      <div class="mr"><div class="ml"><span>Uranium &mdash; Niger</span><span>7% mondial</span></div><div class="mb"><div class="mf" style="width:30%;background:linear-gradient(90deg,#14532d,#22c55e);"></div></div></div>
+      <div class="mr"><div class="ml"><span>Gaz &mdash; Alg&eacute;rie</span><span>10% UE</span></div><div class="mb"><div class="mf" style="width:45%;background:linear-gradient(90deg,#1e3a5f,var(--blu));"></div></div></div>
+      <div class="mr"><div class="ml"><span>Cobalt &mdash; RDC</span><span>70% mondial</span></div><div class="mb"><div class="mf" style="width:70%;background:linear-gradient(90deg,#312e81,var(--pur));"></div></div></div>
+    </div></div>
+    <div class="pnl"><div class="ph"><span class="pt"><i class="fas fa-route"></i> Infrastructures Critiques</span></div><div class="pb">
+      <div style="background:rgba(0,0,0,.3);border:1px solid var(--border);padding:13px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#fff;margin-bottom:3px;">Gazoduc Maghreb&ndash;Europe</div><div style="font-size:12px;color:var(--dim2);font-style:italic;">Alg&eacute;rie &rarr; Maroc &rarr; Espagne</div></div><span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--grn);border:1px solid rgba(16,185,129,.4);padding:2px 10px;">ACTIF</span></div>
+      <div style="background:rgba(0,0,0,.3);border:1px solid var(--border);padding:13px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#fff;margin-bottom:3px;">Gazoduc Nigeria&ndash;Maroc</div><div style="font-size:12px;color:var(--dim2);font-style:italic;">5,660 km &mdash; Corridor Atlantique</div></div><span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gold);border:1px solid rgba(201,162,39,.4);padding:2px 10px;">EN COURS</span></div>
+      <div style="background:rgba(0,0,0,.3);border:1px solid var(--border);padding:13px 16px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#fff;margin-bottom:3px;">Niger&ndash;B&eacute;nin Pipeline</div><div style="font-size:12px;color:var(--dim2);font-style:italic;">Export p&eacute;trole nig&eacute;rien</div></div><span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--blu);border:1px solid rgba(59,130,246,.4);padding:2px 10px;">ACTIF</span></div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ===== TAB: INTELLIGENCE ===== -->
+<div id="intel" class="tab">
+  <div class="stl">Intelligence Syst&#232;me</div>
+  <div class="ssb">8 modules d'intelligence g&#233;opolitique int&#233;gr&#233;e &mdash; Anticipation &middot; Tracking &middot; Simulation</div>
+  <div class="g4" style="margin-bottom:24px;">
+    <div class="im"><span class="im-badge">PR&#201;DICTIF</span><div class="im-ico"><i class="fas fa-radar"></i></div><div class="im-t">Veille Anticipative</div><div class="im-d">Probabilit&#233; de crise &#224; 30 jours &mdash; indicateurs hybrides &#233;co, mil. &amp; sociaux.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="text-align:center;"><div class="pr"><svg viewBox="0 0 80 80"><circle class="trk" cx="40" cy="40" r="34"/><circle cx="40" cy="40" r="34" fill="none" stroke="#ef4444" stroke-width="5" stroke-dasharray="214" stroke-dashoffset="47" stroke-linecap="round"/></svg><div class="pn">78%</div></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--dim2);">SAHEL</div></div>
+        <div style="text-align:center;"><div class="pr"><svg viewBox="0 0 80 80"><circle class="trk" cx="40" cy="40" r="34"/><circle cx="40" cy="40" r="34" fill="none" stroke="#c9a227" stroke-width="5" stroke-dasharray="214" stroke-dashoffset="118" stroke-linecap="round"/></svg><div class="pn">45%</div></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--dim2);">MAGHREB</div></div>
+      </div><button class="im-btn">Acc&#233;der &rarr;</button></div>
+    <div class="im"><span class="im-badge">TRACKING</span><div class="im-ico"><i class="fas fa-crosshairs"></i></div><div class="im-t">Acteurs Non-&#201;tatiques</div><div class="im-d">Surveillance groupes arm&#233;s, PMC et organisations transnationales.</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;margin-bottom:14px;">
+        <div style="padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;justify-content:space-between;"><span style="color:var(--dim2);">Groupes actifs</span><span style="color:#ef4444;">14</span></div>
+        <div style="padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;justify-content:space-between;"><span style="color:var(--dim2);">PMC d&#233;ploy&#233;es</span><span style="color:var(--org);">3</span></div>
+        <div style="padding:5px 0;display:flex;justify-content:space-between;"><span style="color:var(--dim2);">Alertes mouvement</span><span style="color:var(--gold);">2 &#9888;</span></div>
+      </div><button class="im-btn">Acc&#233;der &rarr;</button></div>
+    <div class="im"><span class="im-badge">COGNITIF</span><div class="im-ico"><i class="fas fa-brain"></i></div><div class="im-t">Radar Guerres Hybrides</div><div class="im-d">D&#233;construction campagnes de d&#233;sinformation &amp; cartographie narratifs hostiles.</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;margin-bottom:14px;">
+        <div style="padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;justify-content:space-between;"><span style="color:var(--dim2);">Campagnes actives</span><span style="color:#ef4444;">6</span></div>
+        <div style="padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;justify-content:space-between;"><span style="color:var(--dim2);">Sources</span><span style="color:var(--org);">EAU, Iran</span></div>
+        <div style="padding:5px 0;display:flex;justify-content:space-between;"><span style="color:var(--dim2);">Cible principale</span><span style="color:var(--gold);">Maroc</span></div>
+      </div><button class="im-btn">Acc&#233;der &rarr;</button></div>
+    <div class="im"><span class="im-badge">GIS/SAT.</span><div class="im-ico"><i class="fas fa-satellite"></i></div><div class="im-t">Cartographie G&#233;ospatiale</div><div class="im-d">Imagerie satellite. Suivi projets infrastructure &amp; zones de conflit.</div>
+      <div style="background:rgba(0,0,0,.45);border:1px solid var(--border);height:72px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;text-align:center;"><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:2px;">MODULE SATELLITE<br><span style="color:var(--gold);font-size:8px;display:block;margin-top:3px;">PHASE 2 &mdash; EN D&#201;VELOPPEMENT</span></div></div>
+      <button class="im-btn">Acc&#233;der &rarr;</button></div>
+  </div>
+  <div class="g2">
+    <div class="im"><span class="im-badge">SIMULATION</span><div class="im-ico"><i class="fas fa-flask"></i></div><div class="im-t">Simulateur "What If?" &mdash; Geopolitical Sandbox</div><div class="im-d">Testez des hypoth&#232;ses et analysez instantan&#233;ment les effets de bord.</div>
+      <div class="so" onclick="runSim(this,'gazoduc')"><i class="fas fa-fire" style="color:var(--org);"></i>Si le Gazoduc Nigeria&ndash;Maroc est sabord&#233;...</div>
+      <div class="so" onclick="runSim(this,'coup')"><i class="fas fa-crosshairs" style="color:#ef4444;"></i>Si un coup d'&#201;tat survient en Tunisie...</div>
+      <div class="so" onclick="runSim(this,'cedeao')"><i class="fas fa-gavel" style="color:var(--gold);"></i>Si la CEDEAO intervient militairement au Niger...</div>
+      <div class="so" onclick="runSim(this,'wagner')"><i class="fas fa-skull" style="color:var(--pur);"></i>Si Wagner s'&#233;tend vers la Mauritanie...</div>
+      <div class="so" onclick="runSim(this,'alger')"><i class="fas fa-bomb" style="color:#ef4444;"></i>Si escalade militaire Maroc&ndash;Alg&#233;rie...</div>
+      <div class="sr" id="sr"></div>
+    </div>
+    <div class="im"><span class="im-badge">IA</span><div class="im-ico"><i class="fas fa-bolt"></i></div><div class="im-t">Smart Briefing &mdash; Synth&#232;se Matinale IA</div><div class="im-d">Synth&#232;se quotidienne automatis&#233;e. Actionable Intelligence pour d&#233;cideurs.</div>
+      <div style="background:rgba(0,0,0,.55);border:1px solid rgba(201,162,39,.15);padding:16px;margin-bottom:14px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:10px;">BRIEFING &mdash; 7 MARS 2026</div>
+        <div style="font-size:13px;color:var(--txt);font-style:italic;line-height:1.85;"><span style="color:var(--red);font-family:'Space Grotesk',sans-serif;font-weight:700;">&#9889; &#192; SAVOIR :</span> Op&#233;ration Hedgehog d&#233;ploiement OTAN Sahel confirm&#233;. Tensions Maroc-Alg&#233;rie +0.4pts. Wagner frontiere Mali-Mauritanie T-24h.<br><br><span style="color:var(--gold);font-family:'Space Grotesk',sans-serif;font-weight:700;">&rarr; ACTIONS :</span> Activer sources Niger/Burkina. Contact r&#233;seau Tripoli. Note Wagner urgence.</div>
+      </div>
+      <button class="im-btn" onclick="flash('&#10003; Briefing g&#233;n&#233;r&#233; &mdash; '+new Date().toLocaleTimeString())">G&#233;n&#233;rer Briefing &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: CARTE ===== -->
+<div id="carte" class="tab">
+  <div class="stl">Carte G&#233;opolitique Interactive</div>
+  <div class="ssb">Zones de tension &middot; Groupes arm&#233;s &middot; Corridors strat&#233;giques &mdash; Afrique &amp; Moyen-Orient</div>
+  <div style="display:grid;grid-template-columns:1fr 270px;gap:20px;">
+    <div class="pnl">
+      <div class="ph"><span class="pt"><i class="fas fa-map-marked-alt"></i> Carte des Tensions R&#233;gionales</span><div style="display:flex;gap:14px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;"><span><span style="color:#ef4444;">&#9632;</span> Critique</span><span><span style="color:#f97316;">&#9632;</span> &#201;lev&#233;</span><span><span style="color:#c9a227;">&#9632;</span> Mod&#233;r&#233;</span><span><span style="color:#22c55e;">&#9632;</span> Stable</span></div></div>
+      <div style="padding:8px;">
+        <svg viewBox="0 0 900 540" style="width:100%;background:#050c1a;">
+          <defs><filter id="gf2"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+          <rect width="900" height="540" fill="#050c1a"/>
+          <g class="map-region" onclick="mClick('maghreb')" style="cursor:pointer;">
+            <ellipse cx="115" cy="145" rx="65" ry="60" fill="rgba(249,115,22,.18)" stroke="#f97316" stroke-width="1.5" class="region-body"/>
+            <text x="115" y="141" text-anchor="middle" fill="#fff" font-family="Playfair Display" font-size="13" font-weight="700">MAROC</text><text x="115" y="156" text-anchor="middle" fill="#f97316" font-family="JetBrains Mono" font-size="9">6.8/10</text>
+            <ellipse cx="265" cy="153" rx="82" ry="62" fill="rgba(239,68,68,.18)" stroke="#ef4444" stroke-width="1.5" class="region-body"/>
+            <text x="265" y="149" text-anchor="middle" fill="#fff" font-family="Playfair Display" font-size="14" font-weight="700">ALG&#201;RIE</text><text x="265" y="164" text-anchor="middle" fill="#ef4444" font-family="JetBrains Mono" font-size="9">7.2/10</text>
+            <ellipse cx="385" cy="133" rx="37" ry="40" fill="rgba(201,162,39,.17)" stroke="#c9a227" stroke-width="1.5" class="region-body"/>
+            <text x="385" y="129" text-anchor="middle" fill="#fff" font-family="Playfair Display" font-size="11" font-weight="700">TUN.</text><text x="385" y="144" text-anchor="middle" fill="#c9a227" font-family="JetBrains Mono" font-size="8">5.1</text>
+            <ellipse cx="472" cy="152" rx="67" ry="54" fill="rgba(249,115,22,.18)" stroke="#f97316" stroke-width="1.5" class="region-body"/>
+            <text x="472" y="148" text-anchor="middle" fill="#fff" font-family="Playfair Display" font-size="13" font-weight="700">LIBYE</text><text x="472" y="163" text-anchor="middle" fill="#f97316" font-family="JetBrains Mono" font-size="9">7.4/10</text>
+          </g>
+          <g class="map-region" onclick="mClick('sahel')" style="cursor:pointer;">
+            <ellipse cx="168" cy="272" rx="64" ry="57" fill="rgba(239,68,68,.28)" stroke="#ef4444" stroke-width="2" filter="url(#gf2)" class="region-body"/>
+            <text x="168" y="268" text-anchor="middle" fill="#fff" font-family="Playfair Display" font-size="14" font-weight="700">MALI</text><text x="168" y="284" text-anchor="middle" fill="#ef4444" font-family="JetBrains Mono" font-size="9">9.0/10</text>
+            <ellipse cx="268" cy="285" rx="50" ry="44" fill="rgba(239,68,68,.22)" stroke="#ef4444" stroke-width="1.5" class="region-body"/>
+            <text x="268" y="282" text-anchor="middle" fill="#fff" font-family="Playfair Display" font-size="12" font-weight="700">BURKINA</text><text x="268" y="296" text-anchor="middle" fill="#ef4444" font-family="JetBrains Mono" font-size="9">8.5</text>
+            <ellipse cx="360" cy="263" rx="57" ry="52" fill="rgba(249,115,22,.22)" stroke="#f97316" stroke-width="1.5" class="region-body"/>
+            <text x="360" y="260" text-anchor="middle" fill="#fff" font-family="Playfair Display" font-size="13" font-weight="700">NIGER</text><text x="360" y="274" text-anchor="middle" fill="#f97316" font-family="JetBrains Mono" font-size="9">7.8/10</text>
+            <ellipse cx="460" cy="268" rx="50" ry="52" fill="rgba(201,162,39,.18)" stroke="#c9a227" stroke-width="1.5" class="region-body"/>
+            <text x="460" y="265" text-anchor="middle" fill="#fff" font-family="Playfair Display" font-size="13" font-weight="700">TCHAD</text><text x="460" y="279" text-anchor="middle" fill="#c9a227" font-family="JetBrains Mono" font-size="9">6.5/10</text>
+          </g>
+          <g class="map-region" onclick="mClick('afrique')" style="cursor:pointer;">
+            <ellipse cx="288" cy="382" rx="57" ry="50" fill="rgba(249,115,22,.18)" stroke="#f97316" stroke-width="1.5" class="region-body"/>
+            <text x="288" y="379" text-anchor="middle" fill="#fff" font-family="Playfair Display" font-size="13" font-weight="700">NIGERIA</text><text x="288" y="393" text-anchor="middle" fill="#f97316" font-family="JetBrains Mono" font-size="9">6.2/10</text>
+            <ellipse cx="500" cy="392" rx="67" ry="58" fill="rgba(239,68,68,.24)" stroke="#ef4444" stroke-width="2" filter="url(#gf2)" class="region-body"/>
+            <text x="500" y="388" text-anchor="middle" fill="#fff" font-family="Playfair Display" font-size="13" font-weight="700">R.D. CONGO</text><text x="500" y="402" text-anchor="middle" fill="#ef4444" font-family="JetBrains Mono" font-size="9">8.1/10</text>
+          </g>
+          <g class="map-region" onclick="mClick('orient')" style="cursor:pointer;">
+            <ellipse cx="580" cy="163" rx="52" ry="46" fill="rgba(201,162,39,.13)" stroke="#c9a227" stroke-width="1.5" class="region-body"/>
+            <text x="580" y="159" text-anchor="middle" fill="#fff" font-family="Playfair Display" font-size="12" font-weight="700">&#201;GYPTE</text><text x="580" y="173" text-anchor="middle" fill="#c9a227" font-family="JetBrains Mono" font-size="9">5.8/10</text>
+            <ellipse cx="714" cy="190" rx="70" ry="60" fill="rgba(34,197,94,.1)" stroke="#22c55e" stroke-width="1.5" class="region-body"/>
+            <text x="714" y="186" text-anchor="middle" fill="#fff" font-family="Playfair Display" font-size="12" font-weight="700">AR. SAOUDITE</text><text x="714" y="200" text-anchor="middle" fill="#22c55e" font-family="JetBrains Mono" font-size="9">4.2/10</text>
+          </g>
+          <g stroke-dasharray="6,4" stroke-width="1.5" opacity=".7">
+            <line x1="168" y1="237" x2="360" y2="222" stroke="#8b5cf6"/><text x="263" y="227" fill="#8b5cf6" font-family="JetBrains Mono" font-size="8" text-anchor="middle">WAGNER</text>
+            <line x1="265" y1="210" x2="472" y2="96" stroke="#3b82f6"/><text x="430" y="92" fill="#3b82f6" font-family="JetBrains Mono" font-size="8">MIGRATION</text>
+            <line x1="288" y1="343" x2="115" y2="210" stroke="#c9a227"/><text x="185" y="290" fill="#c9a227" font-family="JetBrains Mono" font-size="8">GAZODUC</text>
+          </g>
+          <circle cx="168" cy="272" r="8" fill="none" stroke="#ef4444" stroke-width="2"><animate attributeName="r" values="8;30;8" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values=".8;0;.8" dur="2s" repeatCount="indefinite"/></circle>
+          <circle cx="500" cy="392" r="8" fill="none" stroke="#ef4444" stroke-width="2"><animate attributeName="r" values="8;26;8" dur="2.5s" repeatCount="indefinite"/><animate attributeName="opacity" values=".8;0;.8" dur="2.5s" repeatCount="indefinite"/></circle>
+          <g transform="translate(858,512)"><circle r="19" fill="rgba(0,0,0,.5)" stroke="rgba(201,162,39,.3)"/><text x="0" y="-5" text-anchor="middle" fill="#c9a227" font-family="Playfair Display" font-size="10" font-weight="700">N</text><line x1="0" y1="-12" x2="0" y2="0" stroke="#c9a227" stroke-width="2"/></g>
+        </svg>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div class="pnl" id="map-pnl"><div class="ph"><span class="pt"><i class="fas fa-info-circle"></i> D&#233;tails Zone</span></div><div class="pb" id="map-body" style="text-align:center;padding:30px 10px;color:var(--dim);font-style:italic;font-size:13px;"><i class="fas fa-mouse-pointer" style="font-size:25px;color:var(--gold);opacity:.35;display:block;margin-bottom:10px;"></i>Cliquez sur une r&#233;gion</div></div>
+      <div class="pnl"><div class="ph"><span class="pt"><i class="fas fa-circle-dot"></i> Crises Actives</span></div>
+        <div style="padding:10px 15px;">
+          <div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;"><span style="width:7px;height:7px;border-radius:50%;background:#ef4444;box-shadow:0 0 5px #ef4444;flex-shrink:0;animation:blink 1s infinite;"></span>Mali &mdash; JNIM avance nord</div>
+          <div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;"><span style="width:7px;height:7px;border-radius:50%;background:#ef4444;box-shadow:0 0 5px #ef4444;flex-shrink:0;animation:blink 1.5s infinite;"></span>RDC &mdash; M23 Bukavu</div>
+          <div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;"><span style="width:7px;height:7px;border-radius:50%;background:#f97316;box-shadow:0 0 5px #f97316;flex-shrink:0;animation:blink 2s infinite;"></span>Libye &mdash; Tension Est/Ouest</div>
+          <div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;"><span style="width:7px;height:7px;border-radius:50%;background:#f97316;box-shadow:0 0 5px #f97316;flex-shrink:0;animation:blink 2.5s infinite;"></span>Sahel &mdash; Op. Hedgehog</div>
+        </div>
+      </div>
+      <div class="pnl"><div class="ph"><span class="pt"><i class="fas fa-route"></i> Corridors</span></div>
+        <div style="padding:10px 15px;font-size:12px;">
+          <div style="display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="width:28px;border-top:2px dashed #8b5cf6;"></span>Zone Wagner</div>
+          <div style="display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="width:28px;border-top:2px dashed #3b82f6;"></span>Routes migratoires</div>
+          <div style="display:flex;align-items:center;gap:9px;padding:5px 0;"><span style="width:28px;border-top:2px dashed #c9a227;"></span>Corridors &#233;nerg&#233;tiques</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: RECHERCHE ===== -->
+<div id="recherche" class="tab">
+  <div class="stl">Recherche Publications</div>
+  <div class="ssb">Moteur de recherche interne &mdash; base documentaire IGH compl&#232;te</div>
+  <div style="position:relative;margin-bottom:18px;">
+    <i class="fas fa-search" style="position:absolute;left:17px;top:50%;transform:translateY(-50%);color:var(--gold);font-size:15px;"></i>
+    <input type="text" id="si" placeholder="Rechercher : Sahel, Wagner, Gazoduc, Maroc, JNIM..." oninput="doSearch(this.value)">
+    <span id="sc" style="position:absolute;right:17px;top:50%;transform:translateY(-50%);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);"></span>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+    <button class="sf on" onclick="fSearch('all',this)">Tout</button>
+    <button class="sf" onclick="fSearch('maghreb',this)">Maghreb</button>
+    <button class="sf" onclick="fSearch('sahel',this)">Sahel</button>
+    <button class="sf" onclick="fSearch('securite',this)">S&#233;curit&#233;</button>
+    <button class="sf" onclick="fSearch('economie',this)">G&#233;o&#233;conomie</button>
+    <button class="sf" onclick="fSearch('orient',this)">Moyen-Orient</button>
+    <button class="sf" onclick="fSearch('afrique',this)">Afrique Sub.</button>
+  </div>
+  <div class="pnl">
+    <div class="ph"><span class="pt"><i class="fas fa-list"></i> R&#233;sultats</span><span id="rc" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold);"></span></div>
+    <div id="sres"></div>
+  </div>
+</div>
+
+<!-- ===== TAB: CMS ===== -->
+<div id="cms" class="tab">
+  <div class="stl">Interface de Publication &mdash; CMS</div>
+  <div class="ssb">R&#233;digez, pr&#233;visualisez et publiez en un clic &mdash; aucun code requis</div>
+  <div style="display:grid;grid-template-columns:1fr 370px;gap:24px;">
+    <div class="pnl">
+      <div class="ph"><span class="pt"><i class="fas fa-pen-nib"></i> Nouvelle Publication</span><span id="cst" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--grn);">&#9679; Pr&#234;t</span></div>
+      <div class="pb" style="display:flex;flex-direction:column;gap:15px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px;">
+          <div><label class="cl">Type de Document *</label><select id="ctype" class="cs2"><option value="IGH-NS">IGH-NS &mdash; Note Strat&#233;gique</option><option value="IGH-DA">IGH-DA &mdash; D&#233;p&#234;che Analytique</option><option value="IGH-RS">IGH-RS &mdash; Rapport Sp&#233;cial</option><option value="IGH-FI">IGH-FI &mdash; Flash Info</option><option value="OMBRE">OMBRE &mdash; Shadow Briefing</option></select></div>
+          <div><label class="cl">Rubrique *</label><select id="crub" class="cs2"><option value="maghreb">Maghreb</option><option value="sahel">Sahel</option><option value="afrique">Afrique Subsaharienne</option><option value="orient">Moyen-Orient</option><option value="securite">S&#233;curit&#233; &amp; D&#233;fense</option><option value="economie">G&#233;o&#233;conomie</option></select></div>
+        </div>
+        <div><label class="cl">Titre de la Publication *</label><input type="text" id="ctitle" class="ci" placeholder="Ex: Analyse strat&#233;gique de la situation au Sahel..." onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'"></div>
+        <div><label class="cl">R&#233;sum&#233; / Accroche</label><textarea id="csum" rows="3" class="ci" placeholder="R&#233;sum&#233; ex&#233;cutif en 2-3 phrases..." style="resize:vertical;font-style:italic;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'"></textarea></div>
+        <div><label class="cl">Contenu Complet de l'Analyse</label><textarea id="cbody" rows="10" class="ci" placeholder="R&#233;digez ici l'analyse compl&#232;te..." style="resize:vertical;line-height:1.7;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'"></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px;">
+          <div><label class="cl">Niveau d'Alerte</label><select id="calert" class="cs2"><option value="green">&#127834; Information</option><option value="gold">&#127841; Vigilance</option><option value="orange">&#127840; Alerte</option><option value="red">&#128308; Critique</option></select></div>
+          <div><label class="cl">Auteur / Analyste</label><input type="text" id="cauth" class="ci" placeholder="Nom de l'analyste..." onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'"></div>
+        </div>
+        <div style="display:flex;gap:10px;padding-top:6px;">
+          <button onclick="pubArt()" style="flex:1;background:var(--gold);color:var(--navy);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;border:none;padding:14px;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='#d4ad2d'" onmouseout="this.style.background='var(--gold)'"><i class="fas fa-paper-plane"></i>&nbsp; PUBLIER MAINTENANT</button>
+          <button onclick="prevArt()" style="background:transparent;border:1px solid var(--border);color:var(--txt);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12px;letter-spacing:2px;padding:14px 16px;cursor:pointer;transition:all .2s;text-transform:uppercase;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--txt)'">APERÇU</button>
+          <button onclick="clrCMS()" style="background:transparent;border:1px solid rgba(239,68,68,.3);color:rgba(239,68,68,.6);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12px;letter-spacing:2px;padding:14px;cursor:pointer;text-transform:uppercase;">RESET</button>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div class="pnl" id="pvpnl" style="display:none;"><div class="ph"><span class="pt"><i class="fas fa-eye"></i> Aper&#231;u</span></div><div class="pb" id="pvbody"></div></div>
+      <div class="pnl"><div class="ph"><span class="pt"><i class="fas fa-check-circle"></i> Publi&#233;es Aujourd'hui</span></div><div id="clist"><div style="padding:18px;text-align:center;color:var(--dim);font-style:italic;font-size:13px;">Aucune publication aujourd'hui</div></div></div>
+      <div class="pnl"><div class="ph"><span class="pt"><i class="fas fa-chart-bar"></i> Statistiques</span></div>
+        <div class="pb">
+          <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-family:'JetBrains Mono',monospace;font-size:11px;"><span style="color:var(--dim2);">Total publications</span><span id="sttot" style="color:var(--gold);">247</span></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-family:'JetBrains Mono',monospace;font-size:11px;"><span style="color:var(--dim2);">Ce mois</span><span id="stmon" style="color:var(--grn);">12</span></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0;font-family:'JetBrains Mono',monospace;font-size:11px;"><span style="color:var(--dim2);">Aujourd'hui</span><span id="sttod" style="color:var(--blu);">0</span></div>
+        </div>
+      </div>
+      <div class="pnl" style="background:rgba(201,162,39,.025);border-color:rgba(201,162,39,.2);"><div class="ph"><span class="pt"><i class="fas fa-lightbulb"></i> Guide Rapide</span></div>
+        <div class="pb" style="font-size:12px;line-height:2.1;color:var(--dim2);">&#10122; Choisissez le <strong style="color:var(--txt);">type</strong> et la <strong style="color:var(--txt);">rubrique</strong><br>&#10123; R&#233;digez le <strong style="color:var(--txt);">titre</strong> et l'<strong style="color:var(--txt);">analyse</strong><br>&#10124; D&#233;finissez le <strong style="color:var(--txt);">niveau d'alerte</strong><br>&#10125; Cliquez <strong style="color:var(--gold);">PUBLIER</strong> &rarr; appara&#238;t imm&#233;diatement dans Dashboard &amp; Publications</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB: SHADOW ===== -->
+<div id="shadow" class="tab">
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px;">
+    <div class="stl" style="margin:0;">Shadow Briefing</div>
+    <span style="background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.45);color:var(--red);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;padding:4px 12px;">ACC&#200;S RESTREINT &mdash; VIP D&#201;CIDEURS</span>
+  </div>
+  <div class="ssb">D&#233;p&#234;ches de l'Ombre &mdash; Analyses confidentielles r&#233;serv&#233;es exclusivement aux d&#233;cideurs</div>
+  <div class="sz">
+    <div style="background:linear-gradient(90deg,rgba(192,57,43,.09),transparent);border-bottom:1px solid rgba(201,162,39,.07);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:10px;letter-spacing:3px;color:var(--gold);">7 D&#201;P&#202;CHES CONFIDENTIELLES</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);">MAJ : Il y a 47min</span>
+    </div>
+    <div class="shi"><span class="sid">OMBRE-001</span><div><div style="font-size:14px;color:#fff;margin-bottom:4px;">Contact haut plac&#233; &mdash; Chancellerie alg&#233;rienne : Pression interne sur Tebboune</div><div style="font-size:12px;color:var(--dim2);font-style:italic;">Source humaine v&#233;rifi&#233;e. Dissensions au sein du Haut Commandement militaire concernant la politique &#233;trang&#232;re post-Barkhane.</div></div><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-left:auto;white-space:nowrap;flex-shrink:0;">1h</span></div>
+    <div class="shi"><span class="sid">OMBRE-002</span><div><div style="font-size:14px;color:#fff;margin-bottom:4px;">R&#233;seaux EAU-Maroc : Op&#233;rations d'influence sur X/Twitter</div><div style="font-size:12px;color:var(--dim2);font-style:italic;">340 comptes identifi&#233;s. Financement trac&#233; vers Abu Dhabi. Fermes de bots cartographi&#233;es.</div></div><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-left:auto;white-space:nowrap;flex-shrink:0;">3h</span></div>
+    <div class="shi"><span class="sid">OMBRE-003</span><div><div style="font-size:14px;color:#fff;margin-bottom:4px;">Mouvement Wagner &mdash; Bamako &rarr; fronti&#232;re mauritanienne <span style="color:var(--red);">URGENT</span></div><div style="font-size:12px;color:var(--dim2);font-style:italic;">Imagerie satellite T-24h. Convoi 4 v&#233;hicules blind&#233;s. Direction : Kayes.</div></div><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--red);margin-left:auto;white-space:nowrap;flex-shrink:0;animation:blink 1s infinite;">URGENT</span></div>
+    <div class="shi"><span class="sid">OMBRE-004</span><div><div style="font-size:14px;color:#fff;margin-bottom:4px;">N&#233;gociations secr&#232;tes Maroc&ndash;Isra&#235;l &mdash; Accord s&#233;curitaire Pegasus II</div><div style="font-size:12px;color:var(--dim2);font-style:italic;">Trois sessions confirm&#233;es &#224; Rabat (d&#233;c. 2025 &ndash; f&#233;v. 2026).</div></div><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-left:auto;white-space:nowrap;flex-shrink:0;">6h</span></div>
+    <div class="shi"><span class="sid">OMBRE-005</span><div><div style="font-size:14px;color:#fff;margin-bottom:4px;">Source diplomatique fran&#231;aise &mdash; Repositionnement Paris dossier sah&#233;lien</div><div style="font-size:12px;color:var(--dim2);font-style:italic;">Contacts discrets avec les juntes via interm&#233;diaires priv&#233;s. Revirement strat&#233;gique imminent.</div></div><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-left:auto;white-space:nowrap;flex-shrink:0;">12h</span></div>
+    <div style="padding:14px 20px;border-top:1px solid rgba(201,162,39,.06);text-align:center;"><button style="background:transparent;border:1px solid var(--border);color:var(--dim2);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;padding:8px 24px;cursor:pointer;text-transform:uppercase;transition:all .2s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--dim2)'">Charger d&#233;p&#234;ches suppl&#233;mentaires</button></div>
+  </div>
+</div>
+
+<!-- ===== TAB: PUBLICATIONS ===== -->
+<div id="pubs" class="tab">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+    <div><div class="stl" style="margin-bottom:3px;">Publications IGH</div><div class="ssb" style="margin:0;">Notes strat&#233;giques &middot; D&#233;p&#234;ches analytiques &middot; Rapports sp&#233;ciaux &middot; Flash info</div></div>
+    <div style="display:flex;gap:9px;">
+      <button onclick="go('cms')" style="background:var(--gold);color:var(--navy);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;letter-spacing:2px;text-transform:uppercase;border:none;padding:10px 18px;cursor:pointer;">+ Nouvelle Publication</button>
+      <button style="background:transparent;border:1px solid var(--border);color:var(--txt);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:10px 14px;cursor:pointer;text-transform:uppercase;">FILTRER</button>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:230px 1fr;gap:20px;">
+    <div class="pnl"><div class="ph"><span class="pt"><i class="fas fa-filter"></i> Filtres</span></div><div class="pb">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--dim2);text-transform:uppercase;margin-bottom:9px;">Type de Document</div>
+      <label style="display:flex;align-items:center;gap:7px;margin-bottom:8px;cursor:pointer;font-size:13px;"><input type="checkbox" checked style="accent-color:var(--gold);"> Notes Strat&#233;giques (NS)</label>
+      <label style="display:flex;align-items:center;gap:7px;margin-bottom:8px;cursor:pointer;font-size:13px;"><input type="checkbox" checked style="accent-color:var(--gold);"> D&#233;p&#234;ches Analytiques (DA)</label>
+      <label style="display:flex;align-items:center;gap:7px;margin-bottom:8px;cursor:pointer;font-size:13px;"><input type="checkbox" style="accent-color:var(--gold);"> Rapports Sp&#233;ciaux (RS)</label>
+      <label style="display:flex;align-items:center;gap:7px;margin-bottom:22px;cursor:pointer;font-size:13px;"><input type="checkbox" style="accent-color:var(--gold);"> Flash Info</label>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--dim2);text-transform:uppercase;margin-bottom:9px;">Rubrique</div>
+      <select style="width:100%;background:rgba(0,0,0,.45);border:1px solid var(--border);color:var(--txt);padding:8px 11px;font-family:'JetBrains Mono',monospace;font-size:10px;outline:none;"><option>Toutes les rubriques</option><option>Maghreb</option><option>Sahel</option><option>Afrique Sub.</option><option>Moyen-Orient</option><option>S&#233;curit&#233;</option><option>G&#233;o&#233;conomie</option></select>
+    </div></div>
+    <div class="pnl" id="pub-list">
+      <div class="pi" style="padding:16px 18px;flex-direction:column;gap:9px;align-items:flex-start;">
+        <div style="display:flex;align-items:center;gap:9px;width:100%;"><span class="pd" style="background:#ef4444;box-shadow:0 0 5px #ef4444;"></span><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);">IGH-NS-2026-02-017</span><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-left:auto;">28 F&#233;v 2026</span></div>
+        <div style="font-size:15px;color:#fff;font-weight:600;">Nomination Schapiro : Vers une diplomatie US de la coercition &#224; l'&#233;gard de l'Alg&#233;rie ?</div>
+        <div style="font-size:13px;color:var(--dim2);font-style:italic;">Analyse des implications de la nomination du nouvel ambassadeur US &#224; Alger et du pivot strat&#233;gique am&#233;ricain.</div>
+        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;width:100%;"><span class="ptag t-m">MAGHREB</span><span class="ptag" style="color:var(--dim2);border-color:rgba(255,255,255,.12);">RELATIONS INT.</span><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-left:auto;"><i class="fas fa-eye"></i> 1,247</span></div>
+      </div>
+      <div class="pi" style="padding:16px 18px;flex-direction:column;gap:9px;align-items:flex-start;">
+        <div style="display:flex;align-items:center;gap:9px;width:100%;"><span class="pd" style="background:var(--gold);box-shadow:0 0 5px var(--gold);"></span><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);">IGH-DA-2026-02-089</span><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-left:auto;">28 F&#233;v 2026</span></div>
+        <div style="font-size:15px;color:#fff;font-weight:600;">Op&#233;ration Hedgehog &mdash; D&#233;ploiement OTAN dans le Sahel</div>
+        <div style="font-size:13px;color:var(--dim2);font-style:italic;">D&#233;p&#234;che analytique sur les mouvements de troupes et implications s&#233;curitaires pour le Maghreb.</div>
+        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;width:100%;"><span class="ptag t-s">SAHEL</span><span class="ptag t-k">S&#201;CURIT&#201;</span><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-left:auto;"><i class="fas fa-eye"></i> 892</span></div>
+      </div>
+      <div class="pi" style="padding:16px 18px;flex-direction:column;gap:9px;align-items:flex-start;">
+        <div style="display:flex;align-items:center;gap:9px;width:100%;"><span class="pd" style="background:var(--blu);box-shadow:0 0 5px var(--blu);"></span><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);">IGH-RS-2026-01-003</span><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-left:auto;">15 F&#233;v 2026</span></div>
+        <div style="font-size:15px;color:#fff;font-weight:600;">La Guerre Cognitive &#201;mirienne contre le Maroc</div>
+        <div style="font-size:13px;color:var(--dim2);font-style:italic;">Rapport sp&#233;cial sur les op&#233;rations d'influence EAU et strat&#233;gies de d&#233;stabilisation document&#233;es.</div>
+        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;width:100%;"><span class="ptag t-o">MOYEN-ORIENT</span><span class="ptag" style="color:var(--pur);border-color:rgba(139,92,246,.4);background:rgba(139,92,246,.08);">INFLUENCE</span><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-left:auto;"><i class="fas fa-eye"></i> 2,156</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+
+<!-- KILL SWITCH -->
+<div id="kill-btn" title="Emergency Clear" onclick="killSwitch()">&#9760;</div>
+
+<script>
+// ── CLOCK ──
+function tick(){
+  const d=new Date();
+  const t=d.toLocaleTimeString('fr-FR',{timeZone:'Africa/Casablanca',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('clk').textContent=t;
+}
+setInterval(tick,1000);tick();
+
+// ── NAV ──
+const tabNames={dashboard:'Vue d'Ensemble',maghreb:'Maghreb',sahel:'Sahel',afrique:'Afrique Subsaharienne',orient:'Moyen-Orient',securite:'Sécurité & Défense',economie:'Géoéconomie',intel:'Intelligence Système',carte:'Carte Interactive',recherche:'Recherche',cms:'Publier',shadow:'Shadow Briefing',pubs:'Publications'};
+function go(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  const tab=document.getElementById(id);
+  if(tab)tab.classList.add('active');
+  document.querySelectorAll('[data-tab="'+id+'"]').forEach(b=>b.classList.add('active'));
+  document.getElementById('bct').textContent=tabNames[id]||id;
+  window.scrollTo(0,0);
+  if(id==='recherche')initSearch();
+}
+
+// ── RUBRIC TOGGLE ──
+function toggleR(id,el){
+  const sub=document.getElementById(id);
+  const ico=document.getElementById('ico-'+id);
+  sub.classList.toggle('open');
+  el.classList.toggle('open');
+  if(ico)ico.style.transform=sub.classList.contains('open')?'rotate(180deg)':'rotate(0deg)';
+}
+
+// ── FLASH ──
+function flash(msg){
+  const fl=document.getElementById('fl');
+  fl.textContent=msg;fl.style.display='block';fl.style.opacity='1';
+  setTimeout(()=>{fl.style.opacity='0';setTimeout(()=>fl.style.display='none',400);},3000);
+}
+
+// ── MAP CLICK ──
+const mapData={
+  maghreb:{title:'MAGHREB',color:'#f97316',items:[['Maroc','6.8/10','Élevé'],['Algérie','7.2/10','Critique'],['Tunisie','5.1/10','Modéré'],['Libye','7.4/10','Élevé']]},
+  sahel:{title:'SAHEL',color:'#ef4444',items:[['Mali','9.0/10','Critique'],['Burkina Faso','8.5/10','Critique'],['Niger','7.8/10','Élevé'],['Tchad','6.5/10','Modéré']]},
+  afrique:{title:'AFRIQUE SUB.',color:'#f97316',items:[['Nigeria','6.2/10','Élevé'],['RD Congo','8.1/10','Critique'],['Cameroun','5.0/10','Modéré']]},
+  orient:{title:'MOYEN-ORIENT',color:'#c9a227',items:[['Égypte','5.8/10','Modéré'],['Arabie Saoudite','4.2/10','Stable'],['Turquie','5.5/10','Modéré']]}
+};
+function mClick(k){
+  const d=mapData[k];if(!d)return;
+  let h='<div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:'+d.color+';margin-bottom:12px;">'+d.title+'</div>';
+  d.items.forEach(it=>{h+='<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;"><span>'+it[0]+'</span><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:'+d.color+';">'+it[1]+'</span></div>';});
+  document.getElementById('map-body').innerHTML=h;
+}
+
+// ── SIMULATOR ──
+const simData={
+  gazoduc:{p:'32%',imp:'Crise énergétique Europe/Afrique',eff:'Tensions Maroc-Nigeria. Retard 5 ans. Réorientation investissements vers Russie-Afrique.',act:'Surveiller corridors alternatifs. Activer sources logistiques Nigeria.'},
+  coup:{p:'18%',imp:'Instabilité politique Tunisie',eff:'Afflux migrants vers UE. Vide sécuritaire frontière libyenne. Intervention CEDEAO/UA.',act:'Activer réseau ambassadeurs. Note urgence Tunisie immédiate.'},
+  cedeao:{p:'12%',imp:'Conflagration régionale Sahel',eff:'Risque de guerre régionale. Migration massive. Contrecoup anti-France. Réorientation Wagner.',act:'Contacter sources diplomatiques. Évaluer capacité ECOMOG.'},
+  wagner:{p:'55%',imp:'Déstabilisation Mauritanie',eff:'Corridor terroriste atlantique. Menace directe sur le Maroc. Crise diplomatique Maghreb-Russie.',act:'URGENT: alerte niveau 1 Mauritanie. Contacter DST Maroc.'},
+  alger:{p:'8%',imp:'Crise militaire majeure Maghreb',eff:'Embrasement régional. Interventions OTAN/Russie. Crise énergétique Europe. Fermeture détroits.',act:'Préparer plan B Tanger. Activer réseau crise. Note immédiate.'}
+};
+function runSim(el,k){
+  document.querySelectorAll('.so').forEach(s=>s.classList.remove('sel'));
+  el.classList.add('sel');
+  const d=simData[k];
+  const sr=document.getElementById('sr');
+  sr.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;"><div style="background:rgba(201,162,39,.07);border:1px solid rgba(201,162,39,.2);padding:10px;text-align:center;"><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--dim2);letter-spacing:1px;margin-bottom:4px;">PROBABILITÉ</div><div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--gold);">'+d.p+'</div></div><div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);padding:10px;"><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--dim2);letter-spacing:1px;margin-bottom:4px;">IMPACT IMMÉDIAT</div><div style="font-size:12px;color:#ef4444;">'+d.imp+'</div></div></div><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--dim2);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;">Effets de bord :</div><p style="font-size:12px;font-style:italic;color:var(--dim2);margin-bottom:10px;">'+d.eff+'</p><div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;">→ Actions préconisées :</div><p style="font-size:12px;color:var(--grn);">'+d.act+'</p>';
+  sr.classList.add('show');
+}
+
+// ── SEARCH DB ──
+const db=[
+  {id:'IGH-NS-017',title:'Nomination Schapiro : Diplomatie US de la coercition',rub:'maghreb',sum:'Analyse des implications de la nomination du nouvel ambassadeur US à Alger.',date:'28 Fév 2026'},
+  {id:'IGH-DA-089',title:'Opération Hedgehog — Déploiement OTAN dans le Sahel',rub:'sahel',sum:'Dépêche sur les mouvements de troupes et implications sécuritaires.',date:'28 Fév 2026'},
+  {id:'IGH-RS-003',title:'La Guerre Cognitive Émirienne contre le Maroc',rub:'orient',sum:'Rapport sur les opérations d'influence EAU documentées.',date:'15 Fév 2026'},
+  {id:'IGH-DA-091',title:'Gazoduc Nigeria-Maroc : État d'avancement 2026',rub:'economie',sum:'Point sur le corridor énergétique atlantique, 5660 km.',date:'14 Fév 2026'},
+  {id:'IGH-FI-001',title:'FLASH — Mouvement Wagner frontière Mali-Mauritanie',rub:'securite',sum:'Confirmation imagerie satellite. Convoi blindé T-24h.',date:'7 Mar 2026'},
+  {id:'IGH-NS-015',title:'Tunisie : FMI, élections et instabilité politique',rub:'maghreb',sum:'Analyse des pressions économiques et scénarios de transition.',date:'10 Fév 2026'},
+  {id:'IGH-DA-082',title:'RDC-M23 : Escalade vers Bukavu et Goma',rub:'afrique',sum:'Rapport sur la progression du M23 dans les Grands Lacs.',date:'8 Fév 2026'},
+  {id:'IGH-RS-002',title:'JNIM : Expansion vers le Golfe de Guinée',rub:'securite',sum:'Analyse du risque d'extension jihadiste vers les pays côtiers.',date:'5 Fév 2026'},
+  {id:'IGH-DA-078',title:'Niger uranium : Enjeux post-coup pour l'approvisionnement européen',rub:'economie',sum:'Impact du coup d'État nigérien sur les ressources stratégiques.',date:'1 Fév 2026'},
+  {id:'IGH-NS-012',title:'Libye : Retour de Haftar et manœuvres turques',rub:'maghreb',sum:'Dynamiques militaires libyennes et repositionnements géopolitiques.',date:'25 Jan 2026'},
+  {id:'IGH-DA-074',title:'Wagner en Afrique : Bilan et nouvelles implantations',rub:'securite',sum:'Cartographie des opérations Wagner sur le continent africain.',date:'18 Jan 2026'},
+  {id:'IGH-RS-001',title:'Cobalt-Coltan RDC : La guerre des minerais critiques',rub:'afrique',sum:'Rapport spécial sur les enjeux géoéconomiques du bassin congolais.',date:'10 Jan 2026'}
+];
+let curFilter='all';
+function doSearch(q){
+  q=q.toLowerCase().trim();
+  const res=db.filter(a=>{
+    const match=!q||(a.title.toLowerCase().includes(q)||a.sum.toLowerCase().includes(q)||a.id.toLowerCase().includes(q));
+    const flt=curFilter==='all'||a.rub===curFilter;
+    return match&&flt;
+  });
+  renderSearch(res,q);
+}
+function fSearch(f,btn){
+  curFilter=f;
+  document.querySelectorAll('.sf').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  doSearch(document.getElementById('si').value);
+}
+function renderSearch(res,q){
+  const el=document.getElementById('sres');
+  const rc=document.getElementById('rc');
+  rc.textContent=res.length+' résultat'+(res.length!==1?'s':'');
+  if(!res.length){el.innerHTML='<div style="padding:24px;text-align:center;color:var(--dim);font-style:italic;">Aucun résultat trouvé.</div>';return;}
+  function hl(txt,q){return q?txt.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\]/g,'\$&')+')','gi'),'<mark style="background:rgba(201,162,39,.25);color:var(--gold);padding:0 2px;">$1</mark>'):txt;}
+  el.innerHTML=res.map(a=>`<div class="pi" style="flex-direction:column;align-items:flex-start;gap:6px;padding:14px 18px;"><div style="display:flex;align-items:center;gap:9px;width:100%;"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);">${a.id}</span><span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border:1px solid rgba(201,162,39,.3);color:var(--gold);background:var(--gold4);">${a.rub}</span><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-left:auto;">${a.date}</span></div><div style="font-size:14px;color:var(--txt);">${hl(a.title,q)}</div><div style="font-size:12px;color:var(--dim2);font-style:italic;">${hl(a.sum,q)}</div></div>`).join('');
+}
+function initSearch(){doSearch('');}
+
+// ── CMS ──
+let todayCount=0;
+function pubArt(){
+  const t=document.getElementById('ctitle').value.trim();
+  if(!t){flash('⚠ Titre obligatoire');return;}
+  const type=document.getElementById('ctype').value;
+  const rub=document.getElementById('crub').value;
+  const alert=document.getElementById('calert').value;
+  const colors={green:'#22c55e',gold:'#c9a227',orange:'#f97316',red:'#ef4444'};
+  const c=colors[alert]||'#c9a227';
+  const now=new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  todayCount++;
+  const cl=document.getElementById('clist');
+  if(todayCount===1)cl.innerHTML='';
+  cl.innerHTML+='<div class="pi"><span class="pd" style="background:'+c+';box-shadow:0 0 5px '+c+';"></span><span class="pc">'+type+'</span><span class="ptl">'+t+'</span><span class="ptm">'+now+'</span></div>';
+  document.getElementById('sttot').textContent=247+todayCount;
+  document.getElementById('stmon').textContent=12+todayCount;
+  document.getElementById('sttod').textContent=todayCount;
+  document.getElementById('kpub').textContent=247+todayCount;
+  const feed=document.getElementById('dash-feed');
+  const li=document.createElement('div');li.className='pi';
+  li.innerHTML='<span class="pd" style="background:'+c+';box-shadow:0 0 6px '+c+';animation:blink .8s infinite;"></span><span class="pc">'+type+'-2026-03-LIVE</span><span class="ptl">'+t+'</span><span class="ptag" style="color:'+c+';border-color:'+c+'40;background:'+c+'15;">'+rub.toUpperCase()+'</span><span class="ptm">À l'instant</span>';
+  feed.insertBefore(li,feed.firstChild);
+  const pb=document.getElementById('pub-list');
+  const pi=document.createElement('div');pi.className='pi';pi.style.cssText='padding:16px 18px;flex-direction:column;gap:9px;align-items:flex-start;';
+  pi.innerHTML='<div style="display:flex;align-items:center;gap:9px;width:100%;"><span class="pd" style="background:'+c+';box-shadow:0 0 5px '+c+';animation:blink .8s infinite;"></span><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);">'+type+'-LIVE</span><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-left:auto;">À l'instant</span></div><div style="font-size:15px;color:#fff;font-weight:600;">'+t+'</div><div style="display:flex;align-items:center;gap:7px;"><span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border:1px solid '+c+'40;color:'+c+';background:'+c+'15;">'+rub.toUpperCase()+'</span></div>';
+  pb.insertBefore(pi,pb.firstChild);
+  flash('✅ Publication créée — ' + type + ' · ' + now);
+  document.getElementById('cst').textContent='✓ Publié';
+  document.getElementById('cst').style.color='var(--grn)';
+  setTimeout(()=>{document.getElementById('cst').textContent='● Prêt';document.getElementById('cst').style.color='var(--grn)';},3000);
+}
+function prevArt(){
+  const t=document.getElementById('ctitle').value||'(Sans titre)';
+  const s=document.getElementById('csum').value||'';
+  const b=document.getElementById('cbody').value||'';
+  const pv=document.getElementById('pvpnl');
+  const pb=document.getElementById('pvbody');
+  pb.innerHTML='<div style="font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:#fff;margin-bottom:9px;">'+t+'</div>'+(s?'<div style="font-size:13px;color:var(--gold);font-style:italic;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);">'+s+'</div>':'')+(b?'<div style="font-size:13px;color:var(--dim2);line-height:1.8;white-space:pre-wrap;">'+b+'</div>':'');
+  pv.style.display='block';
+}
+function clrCMS(){
+  ['ctitle','csum','cbody','cauth'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('pvpnl').style.display='none';
+  flash('Formulaire réinitialisé');
+}
+
+// ── CHARTS ──
+window.addEventListener('load',()=>{
+  const months=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc','Jan','Mar'];
+  const ch1=document.getElementById('mainChart');
+  if(ch1)new Chart(ch1,{type:'line',data:{labels:months,datasets:[{label:'Sahel',data:[7.1,7.4,7.8,8.0,8.2,8.6,8.8,9.0,9.1,9.0,9.2,9.3,9.4,9.5],borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,.06)',tension:.4,borderWidth:2,pointRadius:0,fill:true},{label:'Maghreb',data:[5.5,5.7,5.8,5.9,6.0,6.1,6.0,6.2,6.3,6.2,6.1,6.3,6.2,6.4],borderColor:'#c9a227',backgroundColor:'rgba(201,162,39,.05)',tension:.4,borderWidth:2,pointRadius:0,fill:true},{label:'RDC',data:[6.8,7.0,7.2,7.3,7.5,7.6,7.8,8.0,8.0,8.1,8.2,8.0,8.1,8.3],borderColor:'#8b5cf6',backgroundColor:'rgba(139,92,246,.04)',tension:.4,borderWidth:2,pointRadius:0,fill:true}]},options:{responsive:true,plugins:{legend:{labels:{color:'#94a3b8',font:{family:'JetBrains Mono',size:10},boxWidth:24,padding:16}},tooltip:{backgroundColor:'rgba(0,0,0,.92)',titleColor:'#c9a227',bodyColor:'#d4cfc4',borderColor:'rgba(201,162,39,.3)',borderWidth:1}},scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#56607a',font:{family:'JetBrains Mono',size:9}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#56607a',font:{family:'JetBrains Mono',size:9}},min:0,max:10}}}});
+  const ch2=document.getElementById('maghrebChart');
+  if(ch2)new Chart(ch2,{type:'line',data:{labels:['Jan','Mar','Mai','Jul','Sep','Nov','Jan','Mar'],datasets:[{label:'Maroc',data:[5.8,6.0,6.2,6.5,6.8,6.7,6.9,7.0],borderColor:'#c1272d',tension:.4,borderWidth:2,pointRadius:2,fill:false},{label:'Algérie',data:[6.5,6.8,7.0,7.1,7.2,7.3,7.1,7.4],borderColor:'#006233',tension:.4,borderWidth:2,pointRadius:2,fill:false},{label:'Libye',data:[7.0,7.2,7.1,7.3,7.4,7.5,7.3,7.5],borderColor:'#f97316',tension:.4,borderWidth:2,pointRadius:2,fill:false}]},options:{responsive:true,plugins:{legend:{labels:{color:'#94a3b8',font:{family:'JetBrains Mono',size:10},boxWidth:24}}},scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#56607a',font:{family:'JetBrains Mono',size:9}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#56607a',font:{family:'JetBrains Mono',size:9}},min:4,max:10}}}});
+  const ch3=document.getElementById('sahelChart');
+  if(ch3)new Chart(ch3,{type:'bar',data:{labels:['Mali','Burkina','Niger','Tchad','Nigeria'],datasets:[{label:'2024',data:[312,248,185,97,142],backgroundColor:'rgba(201,162,39,.45)',borderColor:'#c9a227',borderWidth:1},{label:'2025',data:[387,319,241,118,165],backgroundColor:'rgba(249,115,22,.45)',borderColor:'#f97316',borderWidth:1},{label:'Proj.2026',data:[445,368,280,135,188],backgroundColor:'rgba(239,68,68,.45)',borderColor:'#ef4444',borderWidth:1}]},options:{responsive:true,plugins:{legend:{labels:{color:'#94a3b8',font:{family:'JetBrains Mono',size:10},boxWidth:24}}},scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#94a3b8',font:{family:'JetBrains Mono',size:10}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#56607a',font:{family:'JetBrains Mono',size:9}}}}}});
+  initSearch();
+  // Apply blur to shadow content
+  document.querySelectorAll('.shi .sid').forEach(sid=>{
+    const content = sid.nextElementSibling;
+    if(content){
+      const p = content.querySelector('div:last-child');
+      if(p) p.classList.add('classified-blur');
+    }
+  });
+  // Add clearance banner to shadow
+  const sz = document.querySelector('.sz');
+  if(sz){
+    const banner = document.createElement('div');
+    banner.className = 'clearance-vip';
+    banner.innerHTML = '&#9632; CLEARANCE LEVEL : ALPHA-1 &nbsp;&nbsp;|&nbsp;&nbsp; SESSION CHIFFRÉE &nbsp;&nbsp;|&nbsp;&nbsp; ACCÈS TRACÉ';
+    sz.parentNode.insertBefore(banner, sz);
+  }
+  // Add audio brief button to intel tab
+  const briefBtn = document.querySelector('.im-btn[onclick*="Briefing"]');
+  if(briefBtn){
+    const audioBtn = document.createElement('button');
+    audioBtn.className = 'audio-btn';
+    audioBtn.style.marginTop='8px';
+    audioBtn.innerHTML = '<i class="fas fa-volume-up"></i> ÉCOUTER BRIEFING';
+    audioBtn.onclick = function(){readBriefing(this);};
+    briefBtn.parentNode.insertBefore(audioBtn, briefBtn.nextSibling);
+  }
+});
+</script>
+</body>
+</html>
